@@ -28,5 +28,6 @@ public interface PropertyBaseRepository<T extends Property> extends JpaRepositor
     List<T> findByLocationPostCodeStartsWith(String postCode);
 
     List<T> findByTypeIn(Collection<PropertyType> propertyTypes);
+
     T findByAgentId(int i);
 }
