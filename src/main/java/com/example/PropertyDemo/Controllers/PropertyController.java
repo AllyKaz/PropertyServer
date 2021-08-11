@@ -1,5 +1,9 @@
 package com.example.PropertyDemo.Controllers;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.example.PropertyDemo.Agent.Agent;
 import com.example.PropertyDemo.Property.Property;
 import com.example.PropertyDemo.Property.PropertyType;
@@ -10,14 +14,20 @@ import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
 import com.example.PropertyDemo.Repositories.SalesPropertyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,6 +49,10 @@ public class PropertyController {
 
     @Autowired
     private AgentRepository agentRepository;
+
+    private final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+
+    private final String S3_BUCKET_NAME = "propertytestbucket";
 
 
 
@@ -111,12 +125,21 @@ public class PropertyController {
 
 
     @PostMapping("/agent/{id}/properties/rentals")
-    public Property addRentalPropertyToAgent(@PathVariable int id, @RequestBody RentalProperty property) {
+    public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart RentalProperty property,
+                                             @RequestPart(required = false) MultipartFile... images) throws IOException {
+        if(images != null) {
+            for(MultipartFile image: images) {
+                String IMAGE_KEY = id + "_image_" + property.getImages().size();
+                PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, image.getInputStream(), new ObjectMetadata());
+                property.addImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
+            }
+        }
         Agent agent = agentRepository.findById(id).get();
         agent.addProperty(rentalPropertyRepository.save(property));
         agentRepository.save(agent);
-        return property;
+        return new ResponseEntity<RentalProperty>(property, HttpStatus.CREATED);
     }
+
 
     @PostMapping("/agent/{id}/properties/sales")
     public Property addRentalPropertyToAgent(@PathVariable int id, @RequestBody SaleProperty property) {
@@ -125,5 +148,20 @@ public class PropertyController {
         agentRepository.save(agent);
         return property;
     }
+
+    @PatchMapping("/property/{id}/images")
+    public Property addImageToProperty(@PathVariable int id, @RequestPart MultipartFile ...images) throws IOException {
+        Property property = propertyRepository.findById(id).get();
+
+        for(MultipartFile image: images) {
+            String IMAGE_KEY = id +"_image_" + (property.getImages().size() + 1);
+            PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, image.getInputStream(), new ObjectMetadata());
+            property.addImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
+        }
+        propertyRepository.save(property);
+        return property;
+    }
+
+
 
 }

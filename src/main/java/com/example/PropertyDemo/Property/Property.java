@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.ManyToOne;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,7 +28,7 @@ public abstract class Property {
     private int bedrooms;
 
     @ElementCollection
-    private List<URL> images;
+    private List<URL> images = new ArrayList<>();
 
     @JsonIgnore
     @ManyToOne

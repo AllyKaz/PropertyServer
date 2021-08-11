@@ -14,22 +14,32 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import javax.servlet.ServletContext;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -48,12 +58,17 @@ public class PropertyControllerTests {
     @Autowired
     private AgentRepository agentRepository;
 
+    @Autowired
+    private ServletContext context;
+
 
     RentalProperty FIRST_PROPERTY;
     SaleProperty SECOND_PROPERTY;
 
     Agent FIRST_AGENT;
     Agent SECOND_AGENT;
+
+    String AMAZON_S3_BUCKET_URL = "https://propertytestbucket.s3.eu-west-2.amazonaws.com/";
 
     @BeforeEach
     private void generateObjects() throws MalformedURLException {
@@ -228,12 +243,13 @@ public class PropertyControllerTests {
 
         ObjectMapper objectMapper = new ObjectMapper();
         String newPropertyJson = objectMapper.writeValueAsString(newProperty);
+        MockMultipartFile file = new MockMultipartFile("property", "newPropertyJson",
+                "application/json", newPropertyJson.getBytes());
 
-        mockMvc.perform(post("/agent/" + FIRST_AGENT.getId() + "/properties/rentals")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(newPropertyJson))
+        mockMvc.perform(multipart("/agent/" + FIRST_AGENT.getId() + "/properties/rentals")
+                .file(file))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(notNullValue()))).andExpect(jsonPath("$.location.number", is(newProperty.getLocation().getNumber())))
                 .andExpect(jsonPath("$.location.street", is(newProperty.getLocation().getStreet())))
                 .andExpect(jsonPath("$.location.city", is(newProperty.getLocation().getCity())))
@@ -245,6 +261,57 @@ public class PropertyControllerTests {
                 .andExpect(jsonPath("$.images[2]", is(newProperty.getImages().get(2).toExternalForm())))
                 .andExpect(jsonPath("$", hasNoJsonPath("$.agent")))
                 .andExpect(jsonPath("$.monthlyRent", is((double) 2300)));
+    }
+
+    @Test
+    public void addPropertyWithImages() throws Exception {
+
+        RentalProperty newProperty = new RentalProperty(PropertyType.FLAT,
+                new Location(1, "Test Street", "Test City", "Test County", "Test PostCode"),
+                3, new ArrayList<>(), null, 1500);
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(newProperty);
+        MockMultipartFile jsonMultiPart = new MockMultipartFile("property", "newProperty",
+                "application/json", json.getBytes());
+
+        List<MockMultipartFile> files = createImageMultipart(3);
+
+        mockMvc.perform(multipart("/agent/" + FIRST_AGENT.getId() + "/properties/rentals")
+                .file(jsonMultiPart).file(files.get(0)).file(files.get(1)).file(files.get(2)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.images[0]", is(AMAZON_S3_BUCKET_URL + "1_image_0")))
+                .andExpect(jsonPath("$.images[1]", is(AMAZON_S3_BUCKET_URL + "1_image_1")))
+                .andExpect(jsonPath("$.images[2]", is(AMAZON_S3_BUCKET_URL + "1_image_2")));
+
+    }
+
+    private List<MockMultipartFile> createImageMultipart(int size) {
+        List<MockMultipartFile> files = new ArrayList<>();
+        IntStream.range(0, size).forEach(i -> {
+            String filename = "test_image_" + (i + 1) + ".jpeg";
+            try {
+                Path path = new ClassPathResource(filename).getFile().toPath();
+                files.add(new MockMultipartFile("images", filename, "image/jpg",
+                        Files.readAllBytes(path)));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        return files;
+    }
+
+    @Test
+    public void addImagesToProperty() throws Exception {
+        List<MockMultipartFile> files = createImageMultipart(3);
+        MockMultipartHttpServletRequestBuilder builder = MockMvcRequestBuilders.multipart("/property/3/images");
+        builder.with(request -> { request.setMethod("PATCH"); return request;});
+
+        mockMvc.perform(builder
+                .file(files.get(0)).file(files.get(1)).file(files.get(2)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.images[3]", is(AMAZON_S3_BUCKET_URL + "3_image_4")))
+                .andExpect(jsonPath("$.images[4]", is(AMAZON_S3_BUCKET_URL + "3_image_5")))
+                .andExpect(jsonPath("$.images[5]", is(AMAZON_S3_BUCKET_URL + "3_image_6")));
     }
 
     @Test
@@ -321,6 +388,10 @@ public class PropertyControllerTests {
                 .andExpect(jsonPath("$[0].price", is(SECOND_PROPERTY.getPrice())));
 
     }
+
+
+
+
 
 
 
