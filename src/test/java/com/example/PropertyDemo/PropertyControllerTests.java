@@ -389,6 +389,32 @@ public class PropertyControllerTests {
 
     }
 
+    @Test
+    void addAgent() throws Exception {
+        Agent agent = new Agent("Agent name", new Location(1, "Test Street", "Test City",
+                "Test County", "Test PostCode"), "Test Telephone Number");
+
+        String json = new ObjectMapper().writeValueAsString(agent);
+        MockMultipartFile jsonFile = new MockMultipartFile("agent", "agent",
+                "application/json", json.getBytes());
+
+        Path path = new ClassPathResource("test_image_1.jpeg").getFile().toPath();
+        MockMultipartFile file = new MockMultipartFile("logo", "test_image_1.jpeg",
+                "image/jpg", Files.readAllBytes(path));
+
+        mockMvc.perform(multipart("/agent").file(file).file(jsonFile))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(notNullValue())))
+                .andExpect(jsonPath("$.name", is(agent.getName())))
+                .andExpect(jsonPath("$.location.number", is(agent.getLocation().getNumber())))
+                .andExpect(jsonPath("$.location.street", is(agent.getLocation().getStreet())))
+                .andExpect(jsonPath("$.location.city", is(agent.getLocation().getCity())))
+                .andExpect(jsonPath("$.location.county", is(agent.getLocation().getCounty())))
+                .andExpect(jsonPath("$.location.postCode", is(agent.getLocation().getPostCode())))
+                .andExpect(jsonPath("$.telephoneNumber", is(agent.getTelephoneNumber())))
+                .andExpect(jsonPath("$.logoImage", is(AMAZON_S3_BUCKET_URL + "5_logo")));
+    }
+
 
 
 

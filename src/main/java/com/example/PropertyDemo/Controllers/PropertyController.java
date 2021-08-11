@@ -162,6 +162,15 @@ public class PropertyController {
         return property;
     }
 
+    @PostMapping("/agent")
+    public ResponseEntity<Agent> addAgent(@RequestPart Agent agent, @RequestPart MultipartFile logo) throws IOException {
+        agentRepository.save(agent);
+        String IMAGE_KEY = agent.getId() + "_logo";
+        PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, logo.getInputStream(), new ObjectMetadata());
+        agent.setLogoImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
+        return new ResponseEntity<Agent>(agentRepository.save(agent), HttpStatus.CREATED);
+    }
+
 
 
 }

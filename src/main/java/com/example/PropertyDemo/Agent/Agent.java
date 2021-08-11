@@ -32,12 +32,20 @@ public class Agent {
     public Agent() {
     }
 
+    public Agent(String name, Location location, String telephoneNumber) {
+        this.name = name;
+        this.location = location;
+        this.telephoneNumber = telephoneNumber;
+    }
+
     public Agent(String name, Location location, String telephoneNumber, URL logoImage) {
         this.name = name;
         this.location = location;
         this.telephoneNumber = telephoneNumber;
         this.logoImage = logoImage;
     }
+
+
 
     public Integer getId() {
         return id;
