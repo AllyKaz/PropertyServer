@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.example.PropertyDemo.Controllers.Specifications.*;
 
@@ -56,11 +56,7 @@ public class PropertyController {
 
 
 
-    @GetMapping("/properties/{id}")
-    public Property getProperty(@PathVariable int id) {
-        Property property = propertyRepository.findById(id).orElseThrow(() -> new RuntimeException());
-        return property;
-    }
+
 
     @GetMapping("/properties")
     public List<Property> getAllProperties(
@@ -73,6 +69,30 @@ public class PropertyController {
 
         return propertyRepository.findAll(inCity(city).and(inPostCode(postcode))
                 .and(isType(type)).and(hasBedrooms(min, max))).stream().collect(Collectors.toList());
+    }
+
+    @GetMapping("/properties/{id}")
+    public Property getProperty(@PathVariable int id) {
+        Property property = propertyRepository.findById(id).orElseThrow(() -> new RuntimeException());
+        return property;
+    }
+
+    @GetMapping("/properties/{id}/agent")
+    public Agent getAgentForProperty(@PathVariable int id) {
+        return propertyRepository.findById(id).get().getAgent();
+    }
+
+    @PatchMapping("/properties/{id}/images")
+    public Property addImageToProperty(@PathVariable int id, @RequestPart MultipartFile ...images) throws IOException {
+        Property property = propertyRepository.findById(id).get();
+
+        for(MultipartFile image: images) {
+            String IMAGE_KEY = id +"_property_image_" + (property.getImages().size());
+            PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, image.getInputStream(), new ObjectMetadata());
+            property.addImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
+        }
+        propertyRepository.save(property);
+        return property;
     }
 
 
@@ -100,10 +120,19 @@ public class PropertyController {
                 .and(isType(type)).and(hasBedrooms(min, max))).stream().collect(Collectors.toList());
     }
 
+    @GetMapping("/agents")
+    public List<Agent> getAllAgents() {
+        List<Agent> agents = agentRepository.findAll();
+        return agents;
+    }
 
-    @GetMapping("/properties/{id}/agent")
-    public Agent getAgentForProperty(@PathVariable int id) {
-        return propertyRepository.findById(id).get().getAgent();
+    @PostMapping("/agents")
+    public ResponseEntity<Agent> addAgent(@RequestPart Agent agent, @RequestPart MultipartFile logo) throws IOException {
+        agentRepository.save(agent);
+        String IMAGE_KEY = agent.getId() + "_logo";
+        PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, logo.getInputStream(), new ObjectMetadata());
+        agent.setLogoImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
+        return new ResponseEntity<Agent>(agentRepository.save(agent), HttpStatus.CREATED);
     }
 
     @GetMapping("/agents/{id}")
@@ -111,11 +140,7 @@ public class PropertyController {
         return agentRepository.findById(id).get();
     }
 
-    @GetMapping("/agents")
-    public List<Agent> getAllAgents() {
-        List<Agent> agents = agentRepository.findAll();
-        return agents;
-    }
+
 
     @GetMapping("/agents/{id}/properties")
     public Collection<Property> getAgentProperties(@PathVariable int id) {
@@ -124,52 +149,48 @@ public class PropertyController {
     }
 
 
-    @PostMapping("/agent/{id}/properties/rentals")
+    @PostMapping("/agents/{id}/properties/rentals")
     public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart RentalProperty property,
-                                             @RequestPart(required = false) MultipartFile... images) throws IOException {
-        if(images != null) {
-            for(MultipartFile image: images) {
-                String IMAGE_KEY = id + "_image_" + property.getImages().size();
-                PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, image.getInputStream(), new ObjectMetadata());
-                property.addImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
+                                             @RequestPart MultipartFile... images) throws IOException {
+        rentalPropertyRepository.save(property);
+        Stream.of(images).forEach(image -> {
+            String key = property.getId() + "_property_image_" + property.getImages().size();
+            try {
+                PutObjectResult result = s3.putObject(S3_BUCKET_NAME, key , image.getInputStream(), new ObjectMetadata());
+                property.addImage(s3.getUrl(S3_BUCKET_NAME, key));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }
+        });
         Agent agent = agentRepository.findById(id).get();
-        agent.addProperty(rentalPropertyRepository.save(property));
+        agent.addProperty(property);
         agentRepository.save(agent);
         return new ResponseEntity<RentalProperty>(property, HttpStatus.CREATED);
     }
 
 
-    @PostMapping("/agent/{id}/properties/sales")
-    public Property addRentalPropertyToAgent(@PathVariable int id, @RequestBody SaleProperty property) {
-        Agent agent = agentRepository.findById(id).get();
-        agent.addProperty(salesPropertyRepository.save(property));
-        agentRepository.save(agent);
-        return property;
-    }
-
-    @PatchMapping("/property/{id}/images")
-    public Property addImageToProperty(@PathVariable int id, @RequestPart MultipartFile ...images) throws IOException {
-        Property property = propertyRepository.findById(id).get();
-
-        for(MultipartFile image: images) {
-            String IMAGE_KEY = id +"_image_" + (property.getImages().size() + 1);
-            PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, image.getInputStream(), new ObjectMetadata());
-            property.addImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
-        }
+    @PostMapping("/agents/{id}/properties/sales")
+    public ResponseEntity<SaleProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart SaleProperty property,
+            @RequestPart MultipartFile... images) {
         propertyRepository.save(property);
-        return property;
+        Stream.of(images).forEach(image -> {
+            String key = property.getId() + "_property_image_" + property.getImages().size();
+            try {
+                PutObjectResult result = s3.putObject(S3_BUCKET_NAME, key , image.getInputStream(), new ObjectMetadata());
+                property.addImage(s3.getUrl(S3_BUCKET_NAME, key));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        Agent agent = agentRepository.findById(id).get();
+        agent.addProperty(property);
+        agentRepository.save(agent);
+        return new ResponseEntity<SaleProperty>(property, HttpStatus.CREATED);
     }
 
-    @PostMapping("/agent")
-    public ResponseEntity<Agent> addAgent(@RequestPart Agent agent, @RequestPart MultipartFile logo) throws IOException {
-        agentRepository.save(agent);
-        String IMAGE_KEY = agent.getId() + "_logo";
-        PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, logo.getInputStream(), new ObjectMetadata());
-        agent.setLogoImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
-        return new ResponseEntity<Agent>(agentRepository.save(agent), HttpStatus.CREATED);
-    }
+
+
+
 
 
 
