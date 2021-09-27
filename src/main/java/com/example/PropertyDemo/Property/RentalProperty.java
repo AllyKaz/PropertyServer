@@ -1,6 +1,7 @@
 package com.example.PropertyDemo.Property;
 
 import com.example.PropertyDemo.Agent.Agent;
+import com.example.PropertyDemo.Location;
 
 import javax.persistence.Entity;
 import java.net.URL;
@@ -26,4 +27,8 @@ public class RentalProperty extends Property {
     public void setMonthlyRent(double monthlyRent) {
         this.monthlyRent = monthlyRent;
     }
+
+
+
+
 }

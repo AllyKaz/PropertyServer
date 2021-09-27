@@ -2,6 +2,7 @@ package com.example.PropertyDemo.Property;
 
 
 import com.example.PropertyDemo.Agent.Agent;
+import com.example.PropertyDemo.Location;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.ElementCollection;
@@ -14,6 +15,7 @@ import javax.persistence.ManyToOne;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Inheritance
@@ -96,5 +98,18 @@ public abstract class Property {
 
     public void setAgent(Agent agent) {
         this.agent = agent;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Property property = (Property) o;
+        return bedrooms == property.bedrooms && type == property.type && location.equals(property.location);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, location, bedrooms);
     }
 }

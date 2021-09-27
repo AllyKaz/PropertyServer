@@ -5,14 +5,15 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.example.PropertyDemo.Agent.Agent;
+import com.example.PropertyDemo.AgentService;
 import com.example.PropertyDemo.Property.Property;
-import com.example.PropertyDemo.Property.PropertyType;
 import com.example.PropertyDemo.Property.RentalProperty;
 import com.example.PropertyDemo.Property.SaleProperty;
+import com.example.PropertyDemo.PropertyService;
 import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
-import com.example.PropertyDemo.Repositories.SalesPropertyRepository;
+import com.example.PropertyDemo.Repositories.SalePropertyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.example.PropertyDemo.Controllers.Specifications.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -42,13 +40,19 @@ public class PropertyController {
     private PropertyBaseRepository<Property> propertyRepository;
 
     @Autowired
-    private SalesPropertyRepository salesPropertyRepository;
+    private SalePropertyRepository salePropertyRepository;
 
     @Autowired
     private RentalPropertyRepository rentalPropertyRepository;
 
     @Autowired
     private AgentRepository agentRepository;
+
+    @Autowired
+    private PropertyService propertyService;
+
+    @Autowired
+    private AgentService agentService;
 
     private final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
@@ -57,24 +61,14 @@ public class PropertyController {
 
 
 
-
     @GetMapping("/properties")
-    public List<Property> getAllProperties(
-            @PathVariable(required = false) String category,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String postcode,
-            @RequestParam(required = false) PropertyType type,
-            @RequestParam(required = false) Integer min,
-            @RequestParam(required = false) Integer max) {
-
-        return propertyRepository.findAll(inCity(city).and(inPostCode(postcode))
-                .and(isType(type)).and(hasBedrooms(min, max))).stream().collect(Collectors.toList());
+    public List<Property> getAllProperties(@RequestParam Map<String, String> searchParameters) {
+        return propertyService.getAllProperties(searchParameters);
     }
 
     @GetMapping("/properties/{id}")
     public Property getProperty(@PathVariable int id) {
-        Property property = propertyRepository.findById(id).orElseThrow(() -> new RuntimeException());
-        return property;
+        return propertyService.getProperty(id);
     }
 
     @GetMapping("/properties/{id}/agent")
@@ -97,42 +91,23 @@ public class PropertyController {
 
 
     @GetMapping("/rentalProperties")
-    public List<Property> getAllRentalProperties(
-            @PathVariable(required = false) String category,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String postcode,
-            @RequestParam(required = false) PropertyType type,
-            @RequestParam(required = false) Integer min,
-            @RequestParam(required = false) Integer max) {
-        return rentalPropertyRepository.findAll(inCity(city).and(inPostCode(postcode))
-                .and(isType(type)).and(hasBedrooms(min, max))).stream().collect(Collectors.toList());
+    public List<Property> getAllRentalProperties(@RequestParam Map<String, String> params) {
+        return propertyService.getAllProperties(params);
     }
 
-    @GetMapping("/salesProperties")
-    public List<Property> getAllSalesProperties(
-            @PathVariable(required = false) String category,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String postcode,
-            @RequestParam(required = false) PropertyType type,
-            @RequestParam(required = false) Integer min,
-            @RequestParam(required = false) Integer max) {
-        return salesPropertyRepository.findAll(inCity(city).and(inPostCode(postcode))
-                .and(isType(type)).and(hasBedrooms(min, max))).stream().collect(Collectors.toList());
+    @GetMapping("/saleProperties")
+    public List<Property> getAllSalesProperties(@RequestParam Map<String, String> params) {
+            return propertyService.getAllProperties(params);
     }
 
     @GetMapping("/agents")
     public List<Agent> getAllAgents() {
-        List<Agent> agents = agentRepository.findAll();
-        return agents;
+        return agentService.getAll();
     }
 
     @PostMapping("/agents")
     public ResponseEntity<Agent> addAgent(@RequestPart Agent agent, @RequestPart MultipartFile logo) throws IOException {
-        agentRepository.save(agent);
-        String IMAGE_KEY = agent.getId() + "_logo";
-        PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, logo.getInputStream(), new ObjectMetadata());
-        agent.setLogoImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
-        return new ResponseEntity<Agent>(agentRepository.save(agent), HttpStatus.CREATED);
+        return new ResponseEntity<Agent>(agentService.createAgent(agent, logo), HttpStatus.CREATED);
     }
 
     @GetMapping("/agents/{id}")
@@ -151,42 +126,30 @@ public class PropertyController {
 
     @PostMapping("/agents/{id}/properties/rentals")
     public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart RentalProperty property,
-                                             @RequestPart MultipartFile... images) throws IOException {
-        rentalPropertyRepository.save(property);
-        Stream.of(images).forEach(image -> {
-            String key = property.getId() + "_property_image_" + property.getImages().size();
-            try {
-                PutObjectResult result = s3.putObject(S3_BUCKET_NAME, key , image.getInputStream(), new ObjectMetadata());
-                property.addImage(s3.getUrl(S3_BUCKET_NAME, key));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        Agent agent = agentRepository.findById(id).get();
-        agent.addProperty(property);
-        agentRepository.save(agent);
-        return new ResponseEntity<RentalProperty>(property, HttpStatus.CREATED);
+                                             @RequestPart MultipartFile... images) {
+        RentalProperty persistedProperty = null;
+        try {
+            persistedProperty = propertyService.createRentalProperty(property, id, images);
+            return new ResponseEntity<RentalProperty>(persistedProperty, HttpStatus.CREATED);
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
 
     @PostMapping("/agents/{id}/properties/sales")
-    public ResponseEntity<SaleProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart SaleProperty property,
-            @RequestPart MultipartFile... images) {
-        propertyRepository.save(property);
-        Stream.of(images).forEach(image -> {
-            String key = property.getId() + "_property_image_" + property.getImages().size();
-            try {
-                PutObjectResult result = s3.putObject(S3_BUCKET_NAME, key , image.getInputStream(), new ObjectMetadata());
-                property.addImage(s3.getUrl(S3_BUCKET_NAME, key));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        Agent agent = agentRepository.findById(id).get();
-        agent.addProperty(property);
-        agentRepository.save(agent);
-        return new ResponseEntity<SaleProperty>(property, HttpStatus.CREATED);
+    public ResponseEntity<SaleProperty> addSalesPropertyToAgent(@PathVariable int id, @RequestPart SaleProperty property,
+            @RequestPart MultipartFile... images)  {
+        SaleProperty newProperty = null;
+        try {
+            newProperty = propertyService.createSaleProperty(property, id, images);
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<SaleProperty>(newProperty, HttpStatus.CREATED);
     }
+
+
 
 
 

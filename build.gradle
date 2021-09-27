@@ -18,10 +18,10 @@ dependencies {
 	implementation 'com.jayway.jsonpath:json-path-assert'
 	implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1000')
 	implementation 'com.amazonaws:aws-java-sdk-s3'
-	runtimeOnly 'mysql:mysql-connector-java'
+	runtimeOnly 'com.h2database:h2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation "org.springframework.security:spring-security-test"
-	compile 'org.springframework.boot:spring-boot-starter-hateoas:2.4.3'
+	testImplementation "com.github.dpaukov:combinatoricslib3:3.3.2"
 	compile "org.springframework.boot:spring-boot-starter-security"
 }
 

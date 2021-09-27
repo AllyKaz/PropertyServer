@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SalesPropertyRepository extends PropertyBaseRepository<SaleProperty> {
-    List<SalesPropertyRepository> findByPrice(double price);
+public interface SalePropertyRepository extends PropertyBaseRepository<SaleProperty> {
+    List<SalePropertyRepository> findByPrice(double price);
 }

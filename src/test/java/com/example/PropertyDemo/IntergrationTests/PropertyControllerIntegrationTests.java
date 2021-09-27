@@ -1,16 +1,22 @@
-package com.example.PropertyDemo;
+package com.example.PropertyDemo.IntergrationTests;
 
 import com.example.PropertyDemo.Agent.Agent;
-import com.example.PropertyDemo.Property.Location;
+import com.example.PropertyDemo.Location;
 import com.example.PropertyDemo.Property.Property;
 import com.example.PropertyDemo.Property.PropertyType;
 import com.example.PropertyDemo.Property.RentalProperty;
 import com.example.PropertyDemo.Property.SaleProperty;
 import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,8 +28,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import javax.servlet.ServletContext;
 import java.io.IOException;
@@ -33,24 +42,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Disabled
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class PropertyControllerTests {
+public class PropertyControllerIntegrationTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -76,7 +89,7 @@ public class PropertyControllerTests {
     String UUID_REGEX = "[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
 
     @BeforeEach
-    private void generateObjects() throws MalformedURLException {
+    private  void generateObjects() throws MalformedURLException {
         FIRST_AGENT = new Agent("Test Agent", new Location(1, "Test Agent Street", "Test Agent City",
                 "Test Agent County", "Test Agent Postcode"), "Test Agent Telephone",
                 new URL("http://testAgentLogo"));
@@ -428,6 +441,189 @@ public class PropertyControllerTests {
     void authorisationRequiredToAddImagesToProperty() throws Exception {
         mockMvc.perform(multipart("/property/1/images").with(csrf()))
                 .andExpect(status().isForbidden());
+    }
+
+    // Probably better to break this out into nested class with test method for each set of combinations
+    @Disabled
+    @ParameterizedTest
+    @MethodSource("searchParams")
+    public void testRentalSearch(String city, String postCode, String type, String min, String max, String url) throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        if(city != null) params.put("city", Collections.singletonList(city));
+        if(postCode != null) params.put("postCode", Collections.singletonList(postCode));
+        if(type != null) params.put("type", Collections.singletonList(type.toString()));
+        if(min != null) params.put("min", Collections.singletonList(min.toString()));
+        if(max != null) params.put("max", Collections.singletonList(max.toString()));
+
+        MvcResult result = mockMvc.perform(get(url).queryParams(params)).andReturn();
+        String json = result.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode propertiesNode = mapper.readTree(json);
+
+        propertiesNode.forEach(property -> {
+            if(city != null) assertThat(property.get("location").get("city").asText(), is(equalToIgnoringCase(city)));
+            if(postCode != null) assertThat(property.get("location").get("postCode").asText(),
+                    containsStringIgnoringCase(postCode));
+            if(type != null) assertThat(property.get("type").asText(), is(equalToIgnoringCase(type)));
+            if(min != null) assertThat( property.get("bedrooms").asInt(), is(greaterThanOrEqualTo(Integer.parseInt(min))));
+            if(max != null) assertThat(property.get("bedrooms").asInt(), is(lessThanOrEqualTo(Integer.parseInt(max))));
+        });
+    }
+
+    private static Stream<Arguments> searchParams() {
+        List<List<String>> result = new ArrayList<>();
+        Stream<Arguments> finalArguments = Stream.empty();
+        generateArguments(5, result, new String[5], 0);
+        for(String url : Arrays.asList("/properties", "/rentalProperties", "/saleProperties")) {
+            Stream<Arguments> arguments = result.stream().map(list -> Arguments.of(list.get(0), list.get(1),
+                    list.get(2), list.get(3), list.get(4), url));
+            finalArguments = Stream.of(finalArguments, arguments).flatMap(s -> s);
+        }
+        return finalArguments;
+    }
+
+    private static List<String> argNames = Arrays.asList("Test city", "Test Postcode", "FLAT", "2", "4");
+
+    private static void generateArguments(int n, List<List<String>> result,
+                                          String[] temp, int i) {
+        if(i == n) {
+            result.add(new ArrayList<>(Arrays.asList(temp)));
+            return;
+        }
+
+        temp[i] = argNames.get(i);
+        generateArguments(n, result, temp, i + 1);
+
+        temp[i] =  null;
+        generateArguments(n, result, temp, i + 1);
+
+    }
+
+    @Nested
+    class search {
+
+        @Test
+        public void filterByCity() throws Exception {
+            mockMvc.perform(get("/properties").queryParam("city", "Test City"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].location.city", is(equalTo("Test City"))));
+        }
+
+        @Test
+        public void filterByPostCode() throws Exception {
+            mockMvc.perform(get("/properties").queryParam("postCode", "Test Postcode"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].location.postCode", is(equalTo("Test Postcode"))));
+        }
+
+        @Test
+        public void filterByType() throws Exception {
+            mockMvc.perform(get("/properties").queryParam("type", "FLAT"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].type", is(equalTo("FLAT"))));
+        }
+
+        @Test
+        public void filterByMinBeds() throws Exception {
+            mockMvc.perform(get("/properties").queryParam("min", "4"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].bedrooms", is(greaterThanOrEqualTo(4))));
+        }
+
+        @Test
+        public void filterByMaxBeds() throws Exception {
+            mockMvc.perform(get("/properties").queryParam("max", "4"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].bedrooms", is(lessThanOrEqualTo(4))));
+
+        }
+
+
+        @Test
+        public void filterByCityAndMinBeds() throws Exception {
+            mockMvc.perform(get("/properties")
+                    .queryParam("city", "Test City")
+                    .queryParam("min", "4"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].location.city", is(equalTo("Test City"))))
+                    .andExpect(jsonPath("[0].bedrooms", is(greaterThanOrEqualTo(4))));
+        }
+
+        @Test
+        public void filterByCityAndMaxBeds() throws Exception {
+            mockMvc.perform(get("/properties")
+                    .queryParam("city", "Test City 2")
+                    .queryParam("max", "4"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].location.city", is(equalTo("Test City 2"))))
+                    .andExpect(jsonPath("$[0].bedrooms", is(lessThanOrEqualTo(4))));
+        }
+
+        @Test
+        public void filterByTypeAndMaxBeds() throws Exception {
+            mockMvc.perform(get("/properties")
+                    .queryParam("type", "FLAT")
+                    .queryParam("max", "4"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].type", is(equalTo("FLAT"))))
+                    .andExpect(jsonPath("$[0].bedrooms", is(lessThanOrEqualTo(4))));
+        }
+
+        @Test
+        public void filterByTypeAndMinBeds() throws Exception {
+            mockMvc.perform(get("/properties")
+                    .queryParam("type", "HOUSE_TERRACED")
+                    .queryParam("min", "4"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].type", is(equalTo("HOUSE_TERRACED"))))
+                    .andExpect(jsonPath("$[0].bedrooms", is(greaterThanOrEqualTo(4))));
+        }
+
+        @Test
+        public void filterByCityAndType() throws Exception {
+            mockMvc.perform(get("/properties")
+                    .queryParam("city", "Test City")
+                    .queryParam("type", "HOUSE_TERRACED"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].location.city", is(equalTo("Test City"))))
+                    .andExpect(jsonPath("$[0].type", is(equalTo("HOUSE_TERRACED"))));
+        }
+
+        @Test
+        public void filterByCityAndTypeAndMaxBeds() throws Exception {
+            mockMvc.perform(get("/properties")
+                    .queryParam("city", "Test City 2")
+                    .queryParam("type", "FLAT")
+                    .queryParam("max", "4"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].location.city", is(equalTo("Test City 2"))))
+                    .andExpect(jsonPath("$[0].type", is(equalTo("FLAT"))))
+                    .andExpect(jsonPath("$[0].bedrooms", is(lessThanOrEqualTo(4))));
+        }
+
+        @Test
+        public void filterByCityAndTypeAndMinBeds() throws Exception {
+            mockMvc.perform(get("/properties")
+                    .queryParam("city", "Test City")
+                    .queryParam("type", "HOUSE_TERRACED")
+                    .queryParam("min", "4"))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].location.city", is(equalTo("Test City"))))
+                    .andExpect(jsonPath("$[0].type", is(equalTo("HOUSE_TERRACED"))))
+                    .andExpect(jsonPath("$[0].bedrooms", is(greaterThanOrEqualTo(4))));
+        }
     }
 
 

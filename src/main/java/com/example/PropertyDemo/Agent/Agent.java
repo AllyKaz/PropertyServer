@@ -1,6 +1,6 @@
 package com.example.PropertyDemo.Agent;
 
-import com.example.PropertyDemo.Property.Location;
+import com.example.PropertyDemo.Location;
 import com.example.PropertyDemo.Property.Property;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

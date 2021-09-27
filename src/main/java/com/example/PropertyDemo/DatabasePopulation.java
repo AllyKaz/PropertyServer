@@ -1,13 +1,11 @@
 package com.example.PropertyDemo;
-
 import com.example.PropertyDemo.Agent.Agent;
-import com.example.PropertyDemo.Property.Location;
 import com.example.PropertyDemo.Property.PropertyType;
 import com.example.PropertyDemo.Property.RentalProperty;
 import com.example.PropertyDemo.Property.SaleProperty;
 import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
-import com.example.PropertyDemo.Repositories.SalesPropertyRepository;
+import com.example.PropertyDemo.Repositories.SalePropertyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -24,7 +22,7 @@ public class DatabasePopulation implements CommandLineRunner {
     RentalPropertyRepository rentalPropertyRepository;
 
     @Autowired
-    SalesPropertyRepository salesPropertyRepository;
+    SalePropertyRepository salePropertyRepository;
 
     @Autowired
     AgentRepository agentRepository;
@@ -43,7 +41,7 @@ public class DatabasePopulation implements CommandLineRunner {
 
         agentRepository.save(agent);
 
-        salesPropertyRepository.save(new SaleProperty(
+        salePropertyRepository.save(new SaleProperty(
                 PropertyType.FLAT,
                 new Location(1, "Davey Street", "London", "Greater London", "NW7 7AE"),
                 1,
@@ -62,7 +60,7 @@ public class DatabasePopulation implements CommandLineRunner {
                 1500)
         );
 
-        salesPropertyRepository.save(new SaleProperty(
+        salePropertyRepository.save(new SaleProperty(
                 PropertyType.FLAT,
                 new Location(73, "Mews Lane", "Manchester", "Greater Manchester",
                         "MC1 73P"),
@@ -81,7 +79,7 @@ public class DatabasePopulation implements CommandLineRunner {
                 850)
         );
 
-        salesPropertyRepository.save(new SaleProperty(
+        salePropertyRepository.save(new SaleProperty(
                 PropertyType.HOUSE_TERRACED,
                 new Location(37, "Harley Street", "Brighton", "East Sussex", "BR7 19E"),
                 6,

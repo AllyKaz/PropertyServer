@@ -1,6 +1,7 @@
-package com.example.PropertyDemo.Property;
+package com.example.PropertyDemo;
 
 import javax.persistence.Embeddable;
+import java.util.Objects;
 
 @Embeddable
 public class Location {
@@ -60,5 +61,19 @@ public class Location {
 
     public void setPostCode(String postCode) {
         this.postCode = postCode;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Location location = (Location) o;
+        return number == location.number && street.equals(location.street) && city.equals(location.city)
+                && county.equals(location.county) && postCode.equals(location.postCode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(number, street, city, county, postCode);
     }
 }
