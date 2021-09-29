@@ -1,4 +1,4 @@
-package com.example.PropertyDemo;
+package com.example.PropertyDemo.Services;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectResult;

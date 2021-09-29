@@ -12,6 +12,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +27,13 @@ public abstract class Property {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+    @NotNull
     private PropertyType type;
+
+    @NotNull
     private Location location;
+
+    @Min(1)
     private int bedrooms;
 
     @ElementCollection

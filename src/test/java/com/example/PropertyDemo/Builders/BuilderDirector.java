@@ -16,7 +16,7 @@ public class BuilderDirector {
 
     public void constructAgent(AgentBuilder agentBuilder) {
         try {
-            agentBuilder.withName("Frosts").withLocation(constructLocation().build()).withLogo(new URL("https://logo"))
+            agentBuilder.withName("Frosts").withLocation(initLocation().build()).withLogo(new URL("https://logo"))
                     .withTelephoneNumber("telephoneNumber");
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -38,7 +38,7 @@ public class BuilderDirector {
     private static void constructProperty(PropertyBuilder builder, Agent agent) {
 
         try {
-            builder.withType(PropertyType.FLAT).withLocation(constructLocation().build()).withAgent(agent)
+            builder.withType(PropertyType.FLAT).withLocation(initLocation().build()).withAgent(agent)
                     .withBedrooms(3).withImages(Arrays.asList(new URL("https://url1"),
                     new URL("https://url2"), new URL("https://url3")));
         } catch (MalformedURLException e) {
@@ -59,7 +59,7 @@ public class BuilderDirector {
         return builder.withMonthlyRent(1500);
     }
 
-    public static LocationBuilder constructLocation() {
+    public static LocationBuilder initLocation() {
         return new LocationBuilder().withCity("York").withCounty("Yorkshire").withNumber(1).withPostcode("YO7 8NY")
                 .withStreet("Harley Street");
     }
@@ -67,7 +67,7 @@ public class BuilderDirector {
     public static AgentBuilder initAgent() {
         AgentBuilder builder = AgentBuilder.getInstance();
         try {
-            builder.withName("Frosts").withLocation(constructLocation().build())
+            builder.withName("Frosts").withLocation(initLocation().build())
                     .withLogo(new URL("https://logo")).withTelephoneNumber("077763876543");
         } catch (MalformedURLException e) {
             e.printStackTrace();

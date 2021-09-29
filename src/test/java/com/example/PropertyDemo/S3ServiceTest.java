@@ -1,6 +1,7 @@
 package com.example.PropertyDemo;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.example.PropertyDemo.Services.S3Service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;

@@ -4,7 +4,7 @@ import com.example.PropertyDemo.Property.SaleProperty;
 
 public interface SalePropertyBuilder<T extends SalePropertyBuilder<T>> extends PropertyBuilder<T> {
 
-    public T withPrice(double price);
+    public T withPrice(int price);
     public SaleProperty build();
 
 }

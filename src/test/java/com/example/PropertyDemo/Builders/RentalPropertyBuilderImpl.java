@@ -15,7 +15,7 @@ public class RentalPropertyBuilderImpl implements RentalPropertyBuilder<RentalPr
     private int bedrooms;
     private Agent agent;
     private List<URL> images;
-    private double monthlyRent;
+    private int monthlyRent;
 
 
     @Override
@@ -49,7 +49,7 @@ public class RentalPropertyBuilderImpl implements RentalPropertyBuilder<RentalPr
     }
 
     @Override
-    public RentalPropertyBuilderImpl withMonthlyRent(double monthlyRent) {
+    public RentalPropertyBuilderImpl withMonthlyRent(int monthlyRent) {
         this.monthlyRent = monthlyRent;
         return this;
     }

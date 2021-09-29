@@ -1,4 +1,4 @@
-package com.example.PropertyDemo;
+package com.example.PropertyDemo.Services;
 
 import com.example.PropertyDemo.Agent.Agent;
 import com.example.PropertyDemo.Repositories.AgentRepository;
@@ -28,5 +28,6 @@ public class AgentService {
     public Agent getAgent(int id) {
         return agentRepository.findById(id).get();
     }
+
 }
 

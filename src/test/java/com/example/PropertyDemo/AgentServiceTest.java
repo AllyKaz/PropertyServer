@@ -2,6 +2,8 @@ package com.example.PropertyDemo;
 
 import com.example.PropertyDemo.Agent.Agent;
 import com.example.PropertyDemo.Repositories.AgentRepository;
+import com.example.PropertyDemo.Services.AgentService;
+import com.example.PropertyDemo.Services.S3Service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;

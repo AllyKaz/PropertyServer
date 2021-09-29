@@ -10,21 +10,21 @@ import java.util.List;
 @Entity
 public class SaleProperty extends Property {
 
-    private double price;
+    private int price;
 
     public SaleProperty() {
     }
 
-    public SaleProperty(PropertyType type, Location location, int bedrooms, List<URL> images, Agent agent, double price) {
+    public SaleProperty(PropertyType type, Location location, int bedrooms, List<URL> images, Agent agent, int price) {
         super(type, location, bedrooms, images, agent);
         this.price = price;
     }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(int price) {
         this.price = price;
     }
 }

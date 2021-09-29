@@ -5,11 +5,11 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.example.PropertyDemo.Agent.Agent;
-import com.example.PropertyDemo.AgentService;
+import com.example.PropertyDemo.Services.AgentService;
 import com.example.PropertyDemo.Property.Property;
 import com.example.PropertyDemo.Property.RentalProperty;
 import com.example.PropertyDemo.Property.SaleProperty;
-import com.example.PropertyDemo.PropertyService;
+import com.example.PropertyDemo.Services.PropertyService;
 import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -90,14 +91,14 @@ public class PropertyController {
     }
 
 
-    @GetMapping("/rentalProperties")
-    public List<Property> getAllRentalProperties(@RequestParam Map<String, String> params) {
-        return propertyService.getAllProperties(params);
+    @GetMapping("/properties/rentals")
+    public List<RentalProperty> getAllRentalProperties(@RequestParam Map<String, String> params) {
+        return propertyService.getAllRentalProperties(params);
     }
 
-    @GetMapping("/saleProperties")
-    public List<Property> getAllSalesProperties(@RequestParam Map<String, String> params) {
-            return propertyService.getAllProperties(params);
+    @GetMapping("/properties/sales")
+    public List<SaleProperty> getAllSalesProperties(@RequestParam Map<String, String> params) {
+            return propertyService.getAllSaleProperties(params);
     }
 
     @GetMapping("/agents")
@@ -125,7 +126,7 @@ public class PropertyController {
 
 
     @PostMapping("/agents/{id}/properties/rentals")
-    public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart RentalProperty property,
+    public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart @Valid RentalProperty property,
                                              @RequestPart MultipartFile... images) {
         RentalProperty persistedProperty = null;
         try {

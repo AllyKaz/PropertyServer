@@ -1,4 +1,4 @@
-package com.example.PropertyDemo;
+package com.example.PropertyDemo.Services;
 
 import com.example.PropertyDemo.Agent.Agent;
 import com.example.PropertyDemo.Property.Property;
@@ -8,6 +8,7 @@ import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
 import com.example.PropertyDemo.Repositories.SalePropertyRepository;
+import com.example.PropertyDemo.SpecificationBuilders.SpecificationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +32,8 @@ public class PropertyService {
     @Autowired
     SalePropertyRepository salePropertyRepository;
 
+    @Autowired
+    SpecificationBuilder specificationBuilder;
 
     @Autowired
     S3Service s3Service;
@@ -62,16 +65,15 @@ public class PropertyService {
     }
 
     public List<Property> getAllProperties(Map<String, String> searchParams) {
-        return propertyBaseRepository.findAll(SpecificationBuilder.buildSpecification(searchParams));
+        return propertyBaseRepository.findAll(specificationBuilder.build(searchParams));
     }
 
     public List<RentalProperty> getAllRentalProperties(Map<String, String> searchParams) {
-        return rentalPropertyRepository.findAll(SpecificationBuilder.buildSpecification(searchParams));
+        return rentalPropertyRepository.findAll(specificationBuilder.build(searchParams));
     }
 
     public List<SaleProperty> getAllSaleProperties(Map<String, String> searchParams) {
-        return salePropertyRepository.findAll(SpecificationBuilder.buildSpecification(searchParams));
+        return salePropertyRepository.findAll(specificationBuilder.build(searchParams));
     }
 
-    //Todo Implement get all properties for sales and rentals
 }

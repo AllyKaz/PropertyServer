@@ -15,7 +15,7 @@ public class SalePropertyBuilderImpl implements SalePropertyBuilder<SaleProperty
     private int bedrooms;
     private Agent agent;
     private List<URL> images;
-    private double price;
+    private int price;
 
     @Override
     public SalePropertyBuilderImpl withType(PropertyType type) {
@@ -48,7 +48,7 @@ public class SalePropertyBuilderImpl implements SalePropertyBuilder<SaleProperty
     }
 
     @Override
-    public SalePropertyBuilderImpl withPrice(double price) {
+    public SalePropertyBuilderImpl withPrice(int price) {
         this.price = price;
         return this;
     }

@@ -8,11 +8,15 @@ import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
 import com.example.PropertyDemo.Repositories.SalePropertyRepository;
+import com.example.PropertyDemo.Services.PropertyService;
+import com.example.PropertyDemo.Services.S3Service;
+import com.example.PropertyDemo.SpecificationBuilders.SpecificationBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,8 +24,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import static com.example.PropertyDemo.Builders.BuilderDirector.*;
 import static com.example.PropertyDemo.TestUtils.PropertyDemoTestHelper.generateId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,6 +52,9 @@ public class PropertyServiceTest {
 
     @MockBean
     S3Service s3Service;
+
+    @MockBean
+    SpecificationBuilder specificationBuilder;
 
     @Configuration
     static class Config {
@@ -110,6 +121,53 @@ public class PropertyServiceTest {
         assertThat(returnedProperty).isEqualTo(property);
 
     }
+
+    @Test
+    public void getPropertiesBySpecification() {
+        Agent agent = initAgent().build();
+        List<Property> properties = Arrays.asList(initRentalProperty(agent).build(),
+                initSaleProperty(agent).build(), initRentalProperty(agent).build(), initSaleProperty(agent).build());
+        Specification<Property> spec = mock(Specification.class);
+        Map<String, String> params = Map.of("KEY_1", "VALUE_1", "KEY_2", "VALUE_2");
+        when(specificationBuilder.build(params)).thenReturn(spec);
+        when(propertyBaseRepository.findAll(spec)).thenReturn(properties);
+
+        List<Property> returnedProperties = propertyService.getAllProperties(params);
+
+        assertThat(returnedProperties).isEqualTo(properties);
+    }
+
+    @Test
+    public void getRentalPropertiesBySpecification() {
+        Agent agent = initAgent().build();
+        List<RentalProperty> properties = Arrays.asList(initRentalProperty(agent).build(),
+                initRentalProperty(agent).build(), initRentalProperty(agent).build());
+        Specification<RentalProperty> spec = mock(Specification.class);
+        Map<String, String> params = Map.of("KEY_1", "VALUE_1", "KEY_2", "VALUE_2");
+        when(specificationBuilder.<RentalProperty>build(params)).thenReturn(spec);
+        when(rentalPropertyRepository.findAll(spec)).thenReturn(properties);
+
+        List<RentalProperty> returnedProperties = propertyService.getAllRentalProperties(params);
+
+        assertThat(returnedProperties).isEqualTo(properties);
+    }
+
+    @Test
+    public void getSalePropertiesBySpecification() {
+        Agent agent = initAgent().build();
+        List<SaleProperty> properties = Arrays.asList(initSaleProperty(agent).build(),
+                initSaleProperty(agent).build(), initSaleProperty(agent).build());
+        Specification<SaleProperty> spec = mock(Specification.class);
+        Map<String, String> params = Map.of("KEY_1", "VALUE_1", "KEY_2", "VALUE_2");
+        when(specificationBuilder.<SaleProperty>build(params)).thenReturn(spec);
+        when(salePropertyRepository.findAll(spec)).thenReturn(properties);
+
+        List<SaleProperty> returnedProperties = propertyService.getAllSaleProperties(params);
+
+        assertThat(returnedProperties).isEqualTo(properties);
+    }
+
+
 
 
 

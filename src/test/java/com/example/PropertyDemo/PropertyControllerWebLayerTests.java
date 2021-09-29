@@ -8,6 +8,8 @@ import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
 import com.example.PropertyDemo.Repositories.SalePropertyRepository;
+import com.example.PropertyDemo.Services.AgentService;
+import com.example.PropertyDemo.Services.PropertyService;
 import com.example.PropertyDemo.TestUtils.RentalPropertyMatcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -24,13 +26,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.example.PropertyDemo.Builders.BuilderDirector.*;
 import static com.example.PropertyDemo.TestUtils.PropertyDemoTestHelper.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentCaptor.forClass;
@@ -234,7 +237,7 @@ public class PropertyControllerWebLayerTests {
 
     @Test
     public void getPropertyById() throws Exception {
-        RentalProperty property = generateRentalProperty(generateAgent());
+        RentalProperty property = initRentalProperty(initAgent().build()).build();
 
         when(propertyService.getProperty(property.getId())).thenReturn(property);
 
@@ -245,7 +248,7 @@ public class PropertyControllerWebLayerTests {
 
     @Test
     public void getAgentById() throws Exception {
-        Agent agent = generateAgent();
+        Agent agent = initAgent().build();
 
         when(agentRepository.findById(agent.getId())).thenReturn(Optional.of(agent));
 
@@ -256,24 +259,71 @@ public class PropertyControllerWebLayerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void InvalidPropertyReturnsBadRequest() throws Exception {
+        RentalProperty property = initRentalProperty(initAgent().build()).withType(null)
+                .withImages(Collections.emptyList()).build();
+        MockMultipartFile propertyFile = new MockMultipartFile("property", "property",
+                "application/json", mapper.writeValueAsString(property).getBytes());
+        MockMultipartFile imageFile = new MockMultipartFile("images", "image".getBytes());
+        final int AGENT_ID = 1;
+
+        mockMvc.perform(multipart("/agents/" + AGENT_ID + "/properties/rentals")
+                .file(propertyFile).file(imageFile)
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void getPropertiesBySpecification() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("key", "value");
-        params.add("key_2", "value_2");
-        ArrayList<Property> properties = new ArrayList<>();
-        properties.add(generateRentalProperty(generateAgent()));
-        properties.add(generateRentalProperty(generateAgent()));
-        properties.add(generateRentalProperty(generateAgent()));
+        MultiValueMap<String, String> params = buildParams();
+        List<Property> properties = Arrays.asList(initRentalProperty(initAgent().build()).build(),
+                initRentalProperty(initAgent().build()).build(), initRentalProperty(initAgent().build()).build());
 
         when(propertyService.getAllProperties(eq(params.toSingleValueMap()))).thenReturn(properties);
 
         mockMvc.perform(get("/properties").queryParams(params))
                 .andDo(print())
                 .andExpect(content().json(mapper.writeValueAsString(properties)));
+    }
 
-        ArgumentCaptor<Map<String, String>> captor = forClass(Map.class);
-        verify(propertyService).getAllProperties(captor.capture());
-        assertThat(captor.getValue(), equalTo(params.toSingleValueMap()));
+    @Test
+    public void getRentalPropertiesBySpecification() throws Exception {
+        MultiValueMap<String, String> params = buildParams();
+        Agent agent = initAgent().build();
+        List<RentalProperty> properties = Arrays.asList(initRentalProperty(agent).build(),
+                initRentalProperty(agent).build(), initRentalProperty(agent).build());
+
+        when(propertyService.getAllRentalProperties(eq(params.toSingleValueMap()))).thenReturn(properties);
+
+        mockMvc.perform(get("/properties/rentals").queryParams(params))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(properties)));
+    }
+
+    @Test
+    public void getSalePropertiesBySpecification() throws Exception {
+        MultiValueMap<String, String> params = buildParams();
+        Agent agent = initAgent().build();
+        List<SaleProperty> properties = Arrays.asList(initSaleProperty(agent).build(),
+                initSaleProperty(agent).build(), initSaleProperty(agent).build());
+
+        when(propertyService.getAllSaleProperties(eq(params.toSingleValueMap()))).thenReturn(properties);
+
+        mockMvc.perform(get("/properties/sales").queryParams(params))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(properties)));
+
+    }
+
+    private MultiValueMap<String, String> buildParams() {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("key", "value");
+        params.add("key_2", "value_2");
+        return params;
     }
 
     static List<MultiValueMap<String, String>> getPropertiesBySpecification_unused() {

@@ -1,4 +1,4 @@
-package com.example.PropertyDemo;
+package com.example.PropertyDemo.SpecificationBuilders;
 
 import com.example.PropertyDemo.Property.Property;
 import com.example.PropertyDemo.Property.PropertyType;
@@ -8,17 +8,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SpecificationBuilder{
+public class SpecificationBuilder<T extends Property> {
 
 
-    public static <T extends Property> Specification<T>  buildSpecification(Map<String, String> searchParams) {
+    public Specification<T> build(Map<String, String> searchParams) {
         if(searchParams.isEmpty())
             return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(criteriaBuilder.literal(true));
         else {
             List<Specification<T>> specs;
 
             specs = searchParams.keySet().stream()
-                    .map(key -> SpecificationBuilder.<T>getSpec(key, searchParams.get(key)))
+                    .map(key -> getSpec(key, searchParams.get(key)))
                     .collect(Collectors.toList());
 
             Specification<T> finalSpec = specs.get(0);
@@ -30,7 +30,7 @@ public class SpecificationBuilder{
 
     }
 
-    private static <T extends Property> Specification<T> getSpec(String field, String value) {
+    protected Specification<T> getSpec(String field, String value) {
         Specification<T> spec;
         switch(field) {
             case "city":
