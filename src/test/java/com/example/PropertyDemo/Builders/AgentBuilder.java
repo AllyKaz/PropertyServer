@@ -1,7 +1,7 @@
 package com.example.PropertyDemo.Builders;
 
 import com.example.PropertyDemo.Agent.Agent;
-import com.example.PropertyDemo.Location;
+import com.example.PropertyDemo.Location.Location;
 
 import java.net.URL;
 

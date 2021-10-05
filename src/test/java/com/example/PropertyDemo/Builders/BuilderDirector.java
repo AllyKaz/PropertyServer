@@ -35,7 +35,7 @@ public class BuilderDirector {
         salePropertyBuilder.withPrice(300000);
     }
 
-    private static void constructProperty(PropertyBuilder builder, Agent agent) {
+    private static void constructProperty(PropertyBuilder<?> builder, Agent agent) {
 
         try {
             builder.withType(PropertyType.FLAT).withLocation(initLocation().build()).withAgent(agent)

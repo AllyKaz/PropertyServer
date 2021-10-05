@@ -1,6 +1,6 @@
 package com.example.PropertyDemo.Builders;
 
-import com.example.PropertyDemo.Location;
+import com.example.PropertyDemo.Location.Location;
 
 public class LocationBuilder {
 
