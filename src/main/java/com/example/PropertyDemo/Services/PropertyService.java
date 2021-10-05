@@ -33,27 +33,44 @@ public class PropertyService {
     SalePropertyRepository salePropertyRepository;
 
     @Autowired
-    SpecificationBuilder specificationBuilder;
+    SpecificationBuilder<Property> specificationBuilder;
+
+    @Autowired
+    SpecificationBuilder<RentalProperty> rentalPropertySpecificationBuilder;
+
+    @Autowired
+    SpecificationBuilder<SaleProperty> salePropertySpecificationBuilder;
 
     @Autowired
     S3Service s3Service;
 
     public RentalProperty createRentalProperty(RentalProperty property, int agentId, MultipartFile[] images) throws IOException {
         Agent agent = agentRepository.findById(agentId).orElseThrow();
-        for (MultipartFile multipartFile : images) {
-            property.addImage(s3Service.save(multipartFile));
-        }
+        property = rentalPropertyRepository.save(property);
+        addImages(property, images);
         property.setAgent(agent);
         return rentalPropertyRepository.save(property);
     }
 
     public SaleProperty createSaleProperty(SaleProperty property, int agentId, MultipartFile[] images) throws IOException {
         Agent agent = agentRepository.findById(agentId).orElseThrow();
-        for(MultipartFile multipartFile : images) {
-            property.addImage(s3Service.save(multipartFile));
-        }
+        property = salePropertyRepository.save(property);
+        addImages(property, images);
         property.setAgent(agent);
         return salePropertyRepository.save(property);
+    }
+
+    private void addImages(Property property, MultipartFile[] images) throws IOException {
+        for(MultipartFile multipartFile : images) {
+            property.addImage(s3Service.save(multipartFile,
+                    buildFilename(property.getId(), property.getImages().size())));
+        }
+    }
+
+    public Property addImagesToProperty(int imageId, MultipartFile[] images) throws IOException {
+        Property property = propertyBaseRepository.findById(imageId).orElseThrow();
+        addImages(property, images);
+        return propertyBaseRepository.save(property);
     }
 
     public RentalProperty getRentalProperty(int id) {
@@ -69,11 +86,15 @@ public class PropertyService {
     }
 
     public List<RentalProperty> getAllRentalProperties(Map<String, String> searchParams) {
-        return rentalPropertyRepository.findAll(specificationBuilder.build(searchParams));
+        return rentalPropertyRepository.findAll(rentalPropertySpecificationBuilder.build(searchParams));
     }
 
     public List<SaleProperty> getAllSaleProperties(Map<String, String> searchParams) {
-        return salePropertyRepository.findAll(specificationBuilder.build(searchParams));
+        return salePropertyRepository.findAll(salePropertySpecificationBuilder.build(searchParams));
+    }
+
+    private String buildFilename(int id, int index) {
+        return "property_" + id + "_image_" + index;
     }
 
 }

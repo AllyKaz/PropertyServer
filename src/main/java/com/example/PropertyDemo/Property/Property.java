@@ -2,7 +2,7 @@ package com.example.PropertyDemo.Property;
 
 
 import com.example.PropertyDemo.Agent.Agent;
-import com.example.PropertyDemo.Location;
+import com.example.PropertyDemo.Location.Location;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.ElementCollection;

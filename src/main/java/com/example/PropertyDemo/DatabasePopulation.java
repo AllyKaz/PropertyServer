@@ -1,5 +1,6 @@
 package com.example.PropertyDemo;
 import com.example.PropertyDemo.Agent.Agent;
+import com.example.PropertyDemo.Location.Location;
 import com.example.PropertyDemo.Property.PropertyType;
 import com.example.PropertyDemo.Property.RentalProperty;
 import com.example.PropertyDemo.Property.SaleProperty;

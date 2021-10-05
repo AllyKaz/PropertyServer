@@ -1,6 +1,6 @@
 package com.example.PropertyDemo.Agent;
 
-import com.example.PropertyDemo.Location;
+import com.example.PropertyDemo.Location.Location;
 import com.example.PropertyDemo.Property.Property;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,11 @@ public class Agent {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+    @NotNull
     private String name;
+    @NotNull
     private Location location;
+
     private String telephoneNumber;
     private URL logoImage;
 

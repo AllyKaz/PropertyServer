@@ -51,7 +51,7 @@ public class AgentServiceTest {
 
         when(agentRepository.save(agent)).thenReturn(agent);
         URL url = new URL("https://url");
-        when(s3Service.save(logo)).thenReturn(url);
+        when(s3Service.save(logo, anyString())).thenReturn(url);
 
         Agent returnedAgent = agentService.createAgent(agent, logo);
 

@@ -2,21 +2,23 @@ package com.example.PropertyDemo.Controllers;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectResult;
 import com.example.PropertyDemo.Agent.Agent;
-import com.example.PropertyDemo.Services.AgentService;
+import com.example.PropertyDemo.ApiError;
 import com.example.PropertyDemo.Property.Property;
 import com.example.PropertyDemo.Property.RentalProperty;
 import com.example.PropertyDemo.Property.SaleProperty;
-import com.example.PropertyDemo.Services.PropertyService;
 import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
 import com.example.PropertyDemo.Repositories.SalePropertyRepository;
+import com.example.PropertyDemo.Services.AgentService;
+import com.example.PropertyDemo.Services.PropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +32,10 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/")
@@ -60,13 +64,10 @@ public class PropertyController {
     private final String S3_BUCKET_NAME = "propertytestbucket";
 
 
-
-
     @GetMapping("/properties")
     public List<Property> getAllProperties(@RequestParam Map<String, String> searchParameters) {
         return propertyService.getAllProperties(searchParameters);
     }
-
     @GetMapping("/properties/{id}")
     public Property getProperty(@PathVariable int id) {
         return propertyService.getProperty(id);
@@ -79,24 +80,15 @@ public class PropertyController {
 
     @PatchMapping("/properties/{id}/images")
     public Property addImageToProperty(@PathVariable int id, @RequestPart MultipartFile ...images) throws IOException {
-        Property property = propertyRepository.findById(id).get();
-
-        for(MultipartFile image: images) {
-            String IMAGE_KEY = id +"_property_image_" + (property.getImages().size());
-            PutObjectResult result = s3.putObject(S3_BUCKET_NAME, IMAGE_KEY, image.getInputStream(), new ObjectMetadata());
-            property.addImage(s3.getUrl(S3_BUCKET_NAME, IMAGE_KEY));
-        }
-        propertyRepository.save(property);
-        return property;
+        return propertyService.addImagesToProperty(id, images);
     }
 
-
-    @GetMapping("/properties/rentals")
+    @GetMapping("/rentalProperties")
     public List<RentalProperty> getAllRentalProperties(@RequestParam Map<String, String> params) {
         return propertyService.getAllRentalProperties(params);
     }
 
-    @GetMapping("/properties/sales")
+    @GetMapping("/saleProperties")
     public List<SaleProperty> getAllSalesProperties(@RequestParam Map<String, String> params) {
             return propertyService.getAllSaleProperties(params);
     }
@@ -117,38 +109,41 @@ public class PropertyController {
     }
 
 
-
     @GetMapping("/agents/{id}/properties")
     public Collection<Property> getAgentProperties(@PathVariable int id) {
-        List<Property> properties = agentRepository.findById(id).get().getProperties();
-        return properties;
+        return agentService.getAgentProperties(id);
     }
 
 
     @PostMapping("/agents/{id}/properties/rentals")
     public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart @Valid RentalProperty property,
-                                             @RequestPart MultipartFile... images) {
-        RentalProperty persistedProperty = null;
-        try {
-            persistedProperty = propertyService.createRentalProperty(property, id, images);
-            return new ResponseEntity<RentalProperty>(persistedProperty, HttpStatus.CREATED);
-        } catch (IOException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+                                             @RequestPart MultipartFile... images) throws IOException {
+        RentalProperty persistedProperty = propertyService.createRentalProperty(property, id, images);
+        return new ResponseEntity<RentalProperty>(persistedProperty, HttpStatus.CREATED);
     }
-
 
     @PostMapping("/agents/{id}/properties/sales")
     public ResponseEntity<SaleProperty> addSalesPropertyToAgent(@PathVariable int id, @RequestPart SaleProperty property,
-            @RequestPart MultipartFile... images)  {
-        SaleProperty newProperty = null;
-        try {
-            newProperty = propertyService.createSaleProperty(property, id, images);
-        } catch (IOException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+            @RequestPart MultipartFile... images) throws IOException {
+        SaleProperty newProperty = propertyService.createSaleProperty(property, id, images);
         return new ResponseEntity<SaleProperty>(newProperty, HttpStatus.CREATED);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
+        return new ResponseEntity<>(new ApiError(fieldErrors, HttpStatus.BAD_REQUEST.toString()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleIOException(IOException ex) {
+        return new ResponseEntity<>(new ApiError(Collections.emptyMap(), HttpStatus.INTERNAL_SERVER_ERROR.toString()),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
 
 
 

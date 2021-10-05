@@ -40,9 +40,10 @@ public class S3ServiceTest {
     public void canUploadFile() throws IOException {
         MultipartFile multipartFile = mock(MultipartFile.class);
         URL url = new URL("https://url");
-        when(s3.getUrl(eq(s3Service.S3_BUCKET_NAME), anyString())).thenReturn(url);
+        String filename = "property_image_1_1";
+        when(s3.getUrl(eq(S3Service.S3_BUCKET_NAME), eq(filename))).thenReturn(url);
 
-        URL returnedURL = s3Service.save(multipartFile);
+        URL returnedURL = s3Service.save(multipartFile, filename);
 
         assertThat(returnedURL).isEqualTo(url);
         verify(multipartFile).transferTo(any(Path.class));

@@ -20,10 +20,10 @@ public class S3Service {
     public static final String S3_BUCKET_NAME = "propertytestbucket";
 
 
-    public URL save(MultipartFile multipartFile) throws IOException {
+    public URL save(MultipartFile multipartFile, String filename) throws IOException {
         Path tempFile = Files.createTempFile("temp", "tmp");
         multipartFile.transferTo(tempFile);
-        PutObjectResult putObjectResult =  s3.putObject(S3_BUCKET_NAME, "filename", tempFile.toFile());
-        return s3.getUrl(S3_BUCKET_NAME, "filename");
+        PutObjectResult putObjectResult =  s3.putObject(S3_BUCKET_NAME, filename, tempFile.toFile());
+        return s3.getUrl(S3_BUCKET_NAME, filename);
     }
 }

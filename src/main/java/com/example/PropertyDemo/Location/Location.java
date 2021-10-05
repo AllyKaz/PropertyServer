@@ -1,6 +1,7 @@
-package com.example.PropertyDemo;
+package com.example.PropertyDemo.Location;
 
 import javax.persistence.Embeddable;
+import javax.validation.constraints.Pattern;
 import java.util.Objects;
 
 @Embeddable
@@ -10,6 +11,7 @@ public class Location {
     private String street;
     private String city;
     private String county;
+    @Pattern(regexp = "^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$", message = "Invalid Postcode")
     private String postCode;
 
     public Location() {

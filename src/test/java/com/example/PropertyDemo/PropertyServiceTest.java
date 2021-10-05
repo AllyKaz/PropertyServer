@@ -79,7 +79,7 @@ public class PropertyServiceTest {
 
         when(agentRepository.findById(AGENT_ID)).thenReturn(Optional.ofNullable(agent));
         when(rentalPropertyRepository.save(property)).thenReturn(property);
-        when(s3Service.save(any(MockMultipartFile.class))).thenReturn(url);
+        when(s3Service.save(any(MockMultipartFile.class), anyString())).thenReturn(url);
 
         RentalProperty rentalProperty =
                 propertyService.createRentalProperty(property, AGENT_ID, new MultipartFile[]{file1, file2, file3});
@@ -99,7 +99,7 @@ public class PropertyServiceTest {
 
         when(agentRepository.findById(AGENT_ID)).thenReturn(Optional.of(agent));
         when(salePropertyRepository.save(property)).thenReturn(property);
-        when(s3Service.save(any(MockMultipartFile.class))).thenReturn(url);
+        when(s3Service.save(any(MockMultipartFile.class), anyString())).thenReturn(url);
 
         SaleProperty returnedProperty = propertyService.createSaleProperty(property, AGENT_ID,
                 new MultipartFile[]{file1, file2, file3});
