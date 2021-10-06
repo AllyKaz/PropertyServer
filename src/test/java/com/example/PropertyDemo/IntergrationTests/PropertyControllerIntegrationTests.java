@@ -83,8 +83,6 @@ public class PropertyControllerIntegrationTests {
     private ServletContext context;
 
 
-
-
     String AMAZON_S3_BUCKET_URL = "https://propertytestbucket.s3.eu-west-2.amazonaws.com/";
     String AMAZON_S3_BUCKET_URL_REGEX = "https://propertytestbucket\\.s3\\.eu-west-2\\.amazonaws\\.com/";
     String UUID_REGEX = "[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";

@@ -113,7 +113,6 @@ public class PropertyControllerWebLayerTests {
         assertThat(mapCaptor.getValue(), hasEntry(KEY, VALUE));
     }
 
-
     @Test
     public void getRentalProperties() throws Exception {
         List<RentalProperty> propertyList = Arrays.asList(initRentalProperty(initAgent().build()).build(),
@@ -272,6 +271,22 @@ public class PropertyControllerWebLayerTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(agent)));
+    }
+
+    @Test
+    public void getAgentProperties() throws Exception {
+        Agent agent = initAgent().build();
+        final int AGENT_ID = 1;
+        RentalProperty rentalProperty = initRentalProperty(agent).build();
+        SaleProperty saleProperty = initSaleProperty(agent).build();
+
+        when(agentService.getAgentProperties(AGENT_ID)).thenReturn(Arrays.asList(rentalProperty,saleProperty));
+
+        mockMvc.perform(get("/agents/" + AGENT_ID + "/properties"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(Arrays.asList(rentalProperty, saleProperty))));
+
     }
 
     @Test
