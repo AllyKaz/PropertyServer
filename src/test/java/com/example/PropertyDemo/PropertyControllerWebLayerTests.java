@@ -28,7 +28,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -291,7 +290,7 @@ public class PropertyControllerWebLayerTests {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    public void InvalidPropertyReturnsBadRequest() throws Exception {
+    public void invalidPropertyReturnsBadRequest() throws Exception {
         RentalProperty property = initRentalProperty(initAgent().build())
                 .withType(null).withLocation(null).withBedrooms(0)
                 .withImages(Collections.emptyList()).build();
@@ -307,6 +306,27 @@ public class PropertyControllerWebLayerTests {
                 .andExpect(jsonPath("$.errors", hasEntry("type", "must not be null")))
                 .andExpect(jsonPath("$.errors", hasEntry("location", "must not be null")))
                 .andExpect(jsonPath("$.errors", hasEntry("bedrooms", "must be greater than or equal to 1")))
+                .andExpect(jsonPath("$.status", equalTo(HttpStatus.BAD_REQUEST.toString())));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void invalidAgentReturnsBadRequest() throws Exception {
+        Agent agent = initAgent().withName(null).withLocation(null).build();
+        MockMultipartFile agentFile = new MockMultipartFile("agent", "agent",
+                "application/json", mapper.writeValueAsString(agent).getBytes());
+
+        MockMultipartFile logoFile = new MockMultipartFile("logo", "logo",
+                "image/jpeg", "image".getBytes());
+
+        mockMvc.perform(multipart("/agents").file(agentFile).file(logoFile).with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp",
+                        matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*")))
+                .andExpect(jsonPath("$.errors.length()", equalTo(2)))
+                .andExpect(jsonPath("$.errors", hasEntry("name", "must not be null")))
+                .andExpect(jsonPath("$.errors", hasEntry("location", "must not be null")))
                 .andExpect(jsonPath("$.status", equalTo(HttpStatus.BAD_REQUEST.toString())));
     }
 
@@ -357,6 +377,7 @@ public class PropertyControllerWebLayerTests {
                 .andExpect(content().json(mapper.writeValueAsString(properties)));
     }
 
+
     @Test
     public void getSalePropertiesBySpecification() throws Exception {
         MultiValueMap<String, String> params = buildParams();
@@ -372,14 +393,7 @@ public class PropertyControllerWebLayerTests {
                 .andExpect(content().json(mapper.writeValueAsString(properties)));
 
     }
-
-    private MultiValueMap<String, String> buildParams() {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("key", "value");
-        params.add("key_2", "value_2");
-        return params;
-    }
-
+    /*
     static List<MultiValueMap<String, String>> getPropertiesBySpecification_unused() {
         List<MultiValueMap<String, String>> result = new ArrayList<MultiValueMap<String, String>>();
         MultiValueMap<String, String> tempMap = new LinkedMultiValueMap<>();
@@ -402,6 +416,12 @@ public class PropertyControllerWebLayerTests {
 
         tempMap.remove(names[i]);
         generateParams(result, i + 1, tempMap, n);
+    }*/
+    private MultiValueMap<String, String> buildParams() {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("key", "value");
+        params.add("key_2", "value_2");
+        return params;
     }
 
     private MockMultipartFile buildPropertyMultiPart(Property property) throws JsonProcessingException {

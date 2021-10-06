@@ -10,14 +10,8 @@ import com.example.PropertyDemo.Repositories.AgentRepository;
 import com.example.PropertyDemo.Repositories.PropertyBaseRepository;
 import com.example.PropertyDemo.Repositories.RentalPropertyRepository;
 import com.example.PropertyDemo.Repositories.SalePropertyRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +23,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
@@ -44,14 +37,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static com.example.PropertyDemo.Builders.BuilderDirector.*;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -381,7 +372,7 @@ public class PropertyControllerIntegrationTests {
     }
 
 
-    // Probably better to break this out into nested class with test method for each set of combinations
+    /*
     @Disabled
     @ParameterizedTest
     @MethodSource("searchParams")
@@ -563,7 +554,7 @@ public class PropertyControllerIntegrationTests {
                     .andExpect(jsonPath("$[0].type", is(equalTo("HOUSE_TERRACED"))))
                     .andExpect(jsonPath("$[0].bedrooms", is(greaterThanOrEqualTo(4))));
         }
-    }
+    }*/
 
 
 

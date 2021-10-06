@@ -23,6 +23,7 @@ public class Agent {
 
     @NotNull
     private String name;
+
     @NotNull
     private Location location;
 
