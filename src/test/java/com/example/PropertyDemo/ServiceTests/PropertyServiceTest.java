@@ -1,4 +1,4 @@
-package com.example.PropertyDemo;
+package com.example.PropertyDemo.ServiceTests;
 
 import com.example.PropertyDemo.Agent.Agent;
 import com.example.PropertyDemo.Property.Property;

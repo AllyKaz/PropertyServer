@@ -12,6 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.ManyToOne;
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
@@ -31,6 +32,7 @@ public abstract class Property {
     private PropertyType type;
 
     @NotNull
+    @Valid
     private Location location;
 
     @Min(1)

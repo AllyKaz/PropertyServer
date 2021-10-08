@@ -52,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @WebMvcTest
-public class PropertyControllerWebLayerTests {
+public class WebLayerTests {
 
     @MockBean
     private PropertyBaseRepository<Property> propertyRepository;
@@ -331,6 +331,25 @@ public class PropertyControllerWebLayerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", roles="ADMIN")
+    public void invalidLocationReturnsBadRequest() throws Exception {
+        Agent agent = initAgent().build();
+        RentalProperty rentalProperty = initRentalProperty(agent)
+                .withLocation(initLocation().withNumber(0).withStreet("").withCity("").withPostcode("").build()).build();
+
+
+        mockMvc.perform(multipart("/agents/" + 1 + "/properties/rentals")
+                .file(buildPropertyMultiPart(rentalProperty)).file(buildImageMultiPart())
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp",
+                        matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*")))
+                .andExpect(jsonPath("$.errors.length()", equalTo(4)));
+
+    }
+
+    @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     public void throwsIOException() throws Exception {
         SaleProperty saleProperty = initSaleProperty(initAgent().build()).build();
@@ -376,7 +395,6 @@ public class PropertyControllerWebLayerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(properties)));
     }
-
 
     @Test
     public void getSalePropertiesBySpecification() throws Exception {

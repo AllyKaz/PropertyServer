@@ -1,17 +1,28 @@
 package com.example.PropertyDemo.Location;
 
 import javax.persistence.Embeddable;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.Objects;
 
 @Embeddable
 public class Location {
 
+    @Min(value = 1, message = "location must have a number")
     private int number;
+
+    @NotEmpty(message = "location must have a street")
     private String street;
+
+    @NotEmpty(message = "location must have a city")
     private String city;
+
     private String county;
-    @Pattern(regexp = "^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$", message = "Invalid Postcode")
+
+    @NotNull(message = "postcode must not be null")
+    @Pattern(regexp = "^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$", message = "location must have a valid postcode")
     private String postCode;
 
     public Location() {

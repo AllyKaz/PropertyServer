@@ -1,4 +1,4 @@
-package com.example.PropertyDemo;
+package com.example.PropertyDemo.ServiceTests;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.example.PropertyDemo.Services.S3Service;
