@@ -11,7 +11,7 @@ import java.util.List;
 @Entity
 public class RentalProperty extends Property {
 
-    @NotNull
+    @NotNull(message = "monthly rent must not be null")
     private int monthlyRent;
 
     public RentalProperty() {

@@ -12,14 +12,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
-import java.util.Iterator;
 import java.util.Set;
 
 import static com.example.PropertyDemo.Builders.BuilderDirector.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 
-public class LocationTests {
+public class LocationValidationTests {
 
     Validator validator;
 
@@ -36,6 +36,9 @@ public class LocationTests {
         Set<ConstraintViolation<Location>> violations = validator
                 .validate(initLocation().withPostcode(postcode).build());
         assertThat(violations.size(), equalTo(1));
+        assertThat(violations.iterator().next().getMessage(), anyOf(
+                equalTo(postcode + " is not a valid postcode"),
+                equalTo("postcode must not be null")));
 
     }
 
@@ -48,17 +51,31 @@ public class LocationTests {
     }
 
     @Test
-    public void postcodeValidationFailsWithNull() {
-        Set<ConstraintViolation<Location>> violations = validator.validate(initLocation().withPostcode(null).build());
-        assertThat(violations.size(), equalTo(1));
-    }
-
-    @Test
     public void validationFails() {
         Set<ConstraintViolation<Location>> violations = validator.validate(initLocation().withNumber(0)
                 .withStreet(null).withPostcode(null).withCity(null).build());
         assertThat(violations.size(), equalTo(4));
-        Iterator<ConstraintViolation<Location>> iterator = violations.iterator();
+    }
+
+    @Test
+    public void numberLargerThanZero() {
+        Set<ConstraintViolation<Location>> violations  = validator.validate(initLocation().withNumber(0).build());
+        assertThat(violations.size(), equalTo(1));
+        assertThat(violations.iterator().next().getMessage(), equalTo("location must have a number"));
+    }
+
+    @Test
+    public void streetNotEmpty() {
+        Set<ConstraintViolation<Location>> violations = validator.validate(initLocation().withStreet("").build());
+        assertThat(violations.size(), equalTo(1));
+        assertThat(violations.iterator().next().getMessage(), equalTo("location must have a street"));
+    }
+
+    @Test
+    public void cityNotEmpty() {
+        Set<ConstraintViolation<Location>> violations = validator.validate(initLocation().withCity("").build());
+        assertThat(violations.size(), equalTo(1));
+        assertThat(violations.iterator().next().getMessage(), equalTo("location must have a city"));
     }
 
     @Test

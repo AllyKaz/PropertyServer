@@ -106,7 +106,7 @@ public class SpecificationBuilderIntegrationTests {
         Agent agent = agentRepository.save(initAgent().build());
         salePropertyRepository.save(initSaleProperty(agent).build());
         rentalPropertyRepository.save(initRentalProperty(agent).withLocation(
-                initLocation().withPostcode("MC1 79P").build()).build());
+                initLocation().withPostcode("MC1 7EP").build()).build());
 
         Map<String, String> params = Map.of("postcode", "YO");
         List<Property> list = propertyBaseRepository.findAll(specificationBuilder.build(params));

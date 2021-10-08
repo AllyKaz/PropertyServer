@@ -22,7 +22,7 @@ public class Location {
     private String county;
 
     @NotNull(message = "postcode must not be null")
-    @Pattern(regexp = "^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$", message = "location must have a valid postcode")
+    @Pattern(regexp = "^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$", message = "${validatedValue} is not a valid postcode")
     private String postCode;
 
     public Location() {

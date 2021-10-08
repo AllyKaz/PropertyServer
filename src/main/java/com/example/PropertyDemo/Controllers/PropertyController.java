@@ -131,14 +131,14 @@ public class PropertyController {
 
     @ExceptionHandler
     public ResponseEntity<ApiError> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
+        List<String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage).collect(Collectors.toList());
         return new ResponseEntity<>(new ApiError(fieldErrors, HttpStatus.BAD_REQUEST.toString()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
     public ResponseEntity<ApiError> handleIOException(IOException ex) {
-        return new ResponseEntity<>(new ApiError(Collections.emptyMap(), HttpStatus.INTERNAL_SERVER_ERROR.toString()),
+        return new ResponseEntity<>(new ApiError(Collections.emptyList(), HttpStatus.INTERNAL_SERVER_ERROR.toString()),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

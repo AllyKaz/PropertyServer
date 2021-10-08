@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.ArrayList;
@@ -21,10 +22,10 @@ public class Agent {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @NotNull
+    @NotEmpty(message = "name must not be null or empty")
     private String name;
 
-    @NotNull
+    @NotNull(message = "location must not be null")
     private Location location;
 
     private String telephoneNumber;

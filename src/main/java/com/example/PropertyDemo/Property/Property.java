@@ -28,14 +28,14 @@ public abstract class Property {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @NotNull
+    @NotNull(message = "property type must not be null")
     private PropertyType type;
 
-    @NotNull
+    @NotNull(message = "location must not be null")
     @Valid
     private Location location;
 
-    @Min(1)
+    @Min(value = 1, message = "property must have at least one bedroom")
     private int bedrooms;
 
     @ElementCollection
