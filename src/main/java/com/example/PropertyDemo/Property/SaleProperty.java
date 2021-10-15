@@ -4,14 +4,12 @@ import com.example.PropertyDemo.Agent.Agent;
 import com.example.PropertyDemo.Location.Location;
 
 import javax.persistence.Entity;
-import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.List;
 
 @Entity
 public class SaleProperty extends Property {
 
-    @NotNull(message = "price must not be null")
     private int price;
 
     public SaleProperty() {
