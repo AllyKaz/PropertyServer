@@ -28,7 +28,4 @@ public class RentalProperty extends Property {
         this.monthlyRent = monthlyRent;
     }
 
-
-
-
 }

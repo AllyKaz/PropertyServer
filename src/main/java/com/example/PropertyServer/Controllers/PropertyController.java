@@ -7,10 +7,6 @@ import com.example.PropertyServer.ApiError;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
-import com.example.PropertyServer.Repositories.AgentRepository;
-import com.example.PropertyServer.Repositories.PropertyBaseRepository;
-import com.example.PropertyServer.Repositories.RentalPropertyRepository;
-import com.example.PropertyServer.Repositories.SalePropertyRepository;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.PropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,18 +38,6 @@ import java.util.stream.Collectors;
 public class PropertyController {
 
     @Autowired
-    private PropertyBaseRepository<Property> propertyRepository;
-
-    @Autowired
-    private SalePropertyRepository salePropertyRepository;
-
-    @Autowired
-    private RentalPropertyRepository rentalPropertyRepository;
-
-    @Autowired
-    private AgentRepository agentRepository;
-
-    @Autowired
     private PropertyService propertyService;
 
     @Autowired
@@ -62,7 +46,6 @@ public class PropertyController {
     private final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
     private final String S3_BUCKET_NAME = "propertytestbucket";
-
 
     @GetMapping("/properties")
     public List<Property> getAllProperties(@RequestParam Map<String, String> searchParameters) {
@@ -75,7 +58,7 @@ public class PropertyController {
 
     @GetMapping("/properties/{id}/agent")
     public Agent getAgentForProperty(@PathVariable int id) {
-        return propertyRepository.findById(id).get().getAgent();
+        return agentService.getAgentForProperty(id);
     }
 
     @PatchMapping("/properties/{id}/images")
@@ -105,9 +88,8 @@ public class PropertyController {
 
     @GetMapping("/agents/{id}")
     public Agent getAgent(@PathVariable int id) {
-        return agentRepository.findById(id).get();
+        return agentService.getAgent(id);
     }
-
 
     @GetMapping("/agents/{id}/properties")
     public Collection<Property> getAgentProperties(@PathVariable int id) {
@@ -116,15 +98,15 @@ public class PropertyController {
 
 
     @PostMapping("/agents/{id}/properties/rentals")
-    public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id, @RequestPart @Valid RentalProperty property,
-                                             @RequestPart MultipartFile... images) throws IOException {
+    public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id,
+            @RequestPart @Valid RentalProperty property, @RequestPart MultipartFile... images) throws IOException {
         RentalProperty persistedProperty = propertyService.createRentalProperty(property, id, images);
         return new ResponseEntity<RentalProperty>(persistedProperty, HttpStatus.CREATED);
     }
 
     @PostMapping("/agents/{id}/properties/sales")
-    public ResponseEntity<SaleProperty> addSalesPropertyToAgent(@PathVariable int id, @RequestPart SaleProperty property,
-            @RequestPart MultipartFile... images) throws IOException {
+    public ResponseEntity<SaleProperty> addSalesPropertyToAgent(@PathVariable int id,
+            @RequestPart SaleProperty property, @RequestPart MultipartFile... images) throws IOException {
         SaleProperty newProperty = propertyService.createSaleProperty(property, id, images);
         return new ResponseEntity<SaleProperty>(newProperty, HttpStatus.CREATED);
     }

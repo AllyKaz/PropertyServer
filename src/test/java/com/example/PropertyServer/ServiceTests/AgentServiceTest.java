@@ -5,6 +5,7 @@ import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
 import com.example.PropertyServer.Repositories.AgentRepository;
+import com.example.PropertyServer.Repositories.PropertyBaseRepository;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.S3Service;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.PropertyServer.TestUtils.PropertyServerTestHelper.generateId;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -37,6 +37,8 @@ public class AgentServiceTest {
         public AgentService agentService() {
             return new AgentService();
         }
+
+
     }
 
     @MockBean
@@ -47,6 +49,9 @@ public class AgentServiceTest {
 
     @Autowired
     AgentService agentService;
+
+    @MockBean
+    PropertyBaseRepository<Property> propertyBaseRepository;
 
 
     @Test
@@ -77,7 +82,7 @@ public class AgentServiceTest {
     @Test
     public void getAgentById() {
         Agent agent = mock(Agent.class);
-        int ID = generateId();
+        int ID = 1;
         when(agentRepository.findById(eq(ID))).thenReturn(Optional.of(agent));
         Agent returnedAgent = agentService.getAgent(ID);
         assertThat(returnedAgent, equalTo(agent));
@@ -95,5 +100,18 @@ public class AgentServiceTest {
         List<Property> properties = agentService.getAgentProperties(AGENT_ID);
 
         assertThat(properties, contains(rentalProperty, saleProperty));
+    }
+
+    @Test
+    public void getAgentForProperty() {
+        Property property = mock(Property.class);
+        Agent agent = mock(Agent.class);
+        int PROPERTY_ID = 1;
+        when(propertyBaseRepository.findById(PROPERTY_ID)).thenReturn(Optional.ofNullable(property));
+        when(property.getAgent()).thenReturn(agent);
+
+        Agent returnedAgent = agentService.getAgentForProperty(PROPERTY_ID);
+
+        assertThat(returnedAgent, equalTo(agent));
     }
 }

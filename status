@@ -1,0 +1,99 @@
+[33mcommit 5422c5553ba2d1c0df434aa11e1f387223341fda[m[33m ([m[1;36mHEAD -> [m[1;32mlean[m[33m)[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Fri Oct 15 14:14:14 2021 +0100
+
+    Rename Project
+
+[33mcommit 548b4c754dde7db97fad8f2226364ec96a7ff01c[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Fri Oct 15 13:03:14 2021 +0100
+
+    Remove unused files and clean up Integration tests
+
+[33mcommit 35da61252e501413169519cba86c68e71f323c2e[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Fri Oct 15 12:34:49 2021 +0100
+
+    Remove validation on Property price and monthlyRent
+    
+    Propety is an int so no way to distiguish between valid and default value. Type missmatch will be Jackson mapping error.
+
+[33mcommit 9ed932a9af16c6c69f39ddbf56cca96317169943[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Fri Oct 8 17:04:58 2021 +0100
+
+    Refactor and extend Location Validation tests
+
+[33mcommit cba3cf3cc9a28fd6661239393c184db37bf3056c[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Fri Oct 8 15:18:56 2021 +0100
+
+    Enable Validation for Location and fix broken tests
+
+[33mcommit 22eadd8c9f7af06426a07b406fbc61f0fe9643ca[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Wed Oct 6 13:19:57 2021 +0100
+
+    Add validation and invalid exception handling for Agent
+
+[33mcommit 0f9b2bb5775fa6c1034cddc3a0bea1a2ee8d751c[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Wed Oct 6 12:46:23 2021 +0100
+
+    Enable Properties to be returned by given Agent
+
+[33mcommit ec06fa726b3714d698230328342deea3c894c0b5[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Tue Oct 5 14:00:35 2021 +0100
+
+    Add validation and refactor Controller, Servies and Test
+
+[33mcommit 17c80bdd15a16cf9c5f3fb0683a8eb4dd9b0c7f5[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Tue Oct 5 13:46:16 2021 +0100
+
+    Refactor Property Builders
+
+[33mcommit 3ba431e4e238025929b3037927d3032c9cc7bdc3[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Wed Sep 29 11:41:20 2021 +0100
+
+    Add Price and MonthlyRent Specifications and Refactor SpecificationBuilder
+
+[33mcommit 2bebf2aeeb3721da04a38ccc153db5827278f3eb[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Mon Sep 27 12:29:09 2021 +0100
+
+    Create Service Layer and add tests for Services, Controller Web Layer and Specifications
+    
+    Create Service Layer with relevant tests, test for the Controllers Web Layer and intergration test for Specifications
+
+[33mcommit 5596337aaaeda4c5743d71c589b2a869b085e15d[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Thu Aug 26 10:10:29 2021 +0100
+
+    Refactor of tests
+
+[33mcommit ce67b0fb73c9283fdfc14837f9943a9d8fe797c6[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Wed Aug 11 17:34:12 2021 +0100
+
+    Enable creation of Agent through API
+
+[33mcommit 273645587aa93da99dc84b3a4f148a5c64722798[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Wed Aug 11 13:45:59 2021 +0100
+
+    Enable Multipart POST / PATCH upload on Property
+
+[33mcommit b40b9cfc11da08c305688e3f3b24e287722ac531[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Mon Jul 19 14:53:54 2021 +0100
+
+    Remove HATEOS property assemblers, add new PropertyController methods and tests
+
+[33mcommit f617611ed9b16f9bba11ca27074caea9cb0cae01[m[33m ([m[1;32mmaster[m[33m)[m
+Author: Alyosha Kaz <allykaz@live.co.uk>
+Date:   Fri Jul 16 15:50:27 2021 +0100
+
+    First Commit

@@ -32,11 +32,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.example.PropertyServer.Builders.BuilderDirector.*;
-import static com.example.PropertyServer.TestUtils.PropertyServerTestHelper.generateAgent;
-import static com.example.PropertyServer.TestUtils.PropertyServerTestHelper.generateSaleProperty;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -150,7 +147,7 @@ public class WebLayerTests {
 
     @Test
     public void getAllAgents() throws Exception {
-        List<Agent> agentList = Arrays.asList(generateAgent(), generateAgent(), generateAgent());
+        List<Agent> agentList = Arrays.asList(initAgent().build(), initAgent().build(), initAgent().build());
 
         when(agentService.getAll()).thenReturn(agentList);
 
@@ -190,8 +187,9 @@ public class WebLayerTests {
     @Test
     @WithMockUser(username="admin", roles="ADMIN")
     public void addSaleProperty() throws Exception {
-        Agent agent = generateAgent();
-        SaleProperty property = generateSaleProperty(agent);
+        Agent agent = initAgent().build();
+        agent.setId(1);
+        SaleProperty property = initSaleProperty(agent).build();
 
         when(propertyService.createSaleProperty(any(SaleProperty.class), eq(agent.getId()), any(MultipartFile[].class)))
                 .thenReturn(property);
@@ -222,7 +220,7 @@ public class WebLayerTests {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     public void createAgent() throws Exception {
-        Agent agent = generateAgent();
+        Agent agent = initAgent().build();
         MockMultipartFile logoFile = new MockMultipartFile("logo", "logo",
                 "image/jpeg", "image".getBytes());
         MockMultipartFile agentFile = new MockMultipartFile("agent", "agent",
@@ -264,7 +262,7 @@ public class WebLayerTests {
     public void getAgentById() throws Exception {
         Agent agent = initAgent().build();
         int AGENT_ID = 1;
-        when(agentRepository.findById(AGENT_ID)).thenReturn(Optional.of(agent));
+        when(agentService.getAgent(AGENT_ID)).thenReturn(agent);
 
         mockMvc.perform(get("/agents/" + AGENT_ID))
                 .andDo(print())
@@ -286,6 +284,20 @@ public class WebLayerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(Arrays.asList(rentalProperty, saleProperty))));
 
+    }
+
+    @Test
+    public void getAgentForProperties() throws Exception {
+        Agent agent = initAgent().build();
+        final int PROPERTY_ID = 1;
+        Property property = initRentalProperty(agent).build();
+
+        when(agentService.getAgentForProperty(PROPERTY_ID)).thenReturn(agent);
+
+        mockMvc.perform(get("/properties/" + PROPERTY_ID + "/agent"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(agent)));
     }
 
     @Test
