@@ -92,6 +92,8 @@ public class WebLayerTests {
     private final String KEY = "key";
     private final String VALUE = "value";
 
+    private final String TIMESTAMP_REGEX = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*";
+
 
     @Test
     public void getAllProperties() throws Exception {
@@ -302,7 +304,7 @@ public class WebLayerTests {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    public void invalidPropertyReturnsBadRequest() throws Exception {
+    public void invalidRentalPropertyReturnsBadRequestAndErrorMessage() throws Exception {
         RentalProperty property = initRentalProperty(initAgent().build())
                 .withType(null).withLocation(null).withBedrooms(0)
                 .withImages(Collections.emptyList()).build();
@@ -315,6 +317,24 @@ public class WebLayerTests {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.timestamp",
                         matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*")))
+                .andExpect(jsonPath("$.errors.length()", equalTo(3)));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void invalidSalePropertyReturnsBadRequestAndErrorMessage() throws Exception {
+        SaleProperty property = initSaleProperty(initAgent().build())
+                .withType(null).withLocation(null).withBedrooms(0)
+                .withImages(Collections.emptyList()).build();
+        final int AGENT_ID = 1;
+
+        mockMvc.perform(multipart("/agents/" + AGENT_ID + "/properties/sales")
+                .file(buildPropertyMultiPart(property)).file(buildImageMultiPart())
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp",
+                        matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(3)));
     }
 

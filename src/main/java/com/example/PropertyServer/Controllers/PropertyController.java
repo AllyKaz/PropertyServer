@@ -106,7 +106,7 @@ public class PropertyController {
 
     @PostMapping("/agents/{id}/properties/sales")
     public ResponseEntity<SaleProperty> addSalesPropertyToAgent(@PathVariable int id,
-            @RequestPart SaleProperty property, @RequestPart MultipartFile... images) throws IOException {
+            @RequestPart @Valid SaleProperty property, @RequestPart MultipartFile... images) throws IOException {
         SaleProperty newProperty = propertyService.createSaleProperty(property, id, images);
         return new ResponseEntity<SaleProperty>(newProperty, HttpStatus.CREATED);
     }
