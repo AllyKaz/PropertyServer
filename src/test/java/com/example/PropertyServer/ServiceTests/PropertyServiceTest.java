@@ -4,6 +4,7 @@ import com.example.PropertyServer.Agent.Agent;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
+import com.example.PropertyServer.PropertyNotFoundException;
 import com.example.PropertyServer.Repositories.AgentRepository;
 import com.example.PropertyServer.Repositories.PropertyBaseRepository;
 import com.example.PropertyServer.Repositories.RentalPropertyRepository;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 import static com.example.PropertyServer.Builders.BuilderDirector.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -119,6 +121,16 @@ public class PropertyServiceTest {
 
         assertThat(returnedProperty).isEqualTo(property);
 
+    }
+
+    @Test
+    public void nonExistentPropertyThrowsException() {
+        final int ID = 1;
+        when(propertyBaseRepository.findById(ID)).thenThrow(new PropertyNotFoundException(ID));
+
+        PropertyNotFoundException ex = assertThrows(PropertyNotFoundException.class, () -> propertyService.getProperty(ID));
+
+        assertThat("Property with id = " + ID + " not found.").isEqualTo(ex.getMessage());
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.example.PropertyServer.Agent.Agent;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
+import com.example.PropertyServer.PropertyNotFoundException;
 import com.example.PropertyServer.Repositories.AgentRepository;
 import com.example.PropertyServer.Repositories.PropertyBaseRepository;
 import com.example.PropertyServer.Repositories.RentalPropertyRepository;
@@ -78,7 +79,8 @@ public class PropertyService {
     }
 
     public Property getProperty(Integer id) {
-        return propertyBaseRepository.findById(id).orElseThrow();
+        return propertyBaseRepository.findById(id).orElseThrow(() ->
+                new PropertyNotFoundException(id));
     }
 
     public List<Property> getAllProperties(Map<String, String> searchParams) {

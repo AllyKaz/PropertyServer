@@ -256,8 +256,23 @@ public class WebLayerTests {
 
         mockMvc.perform(get("/properties/" + property.getId()))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().json(mapper.writeValueAsString(property)));
+    }
+
+    @Test
+    public void getNonexistentPropertyReturns404() throws Exception {
+        final int PROPERTY_ID = 1;
+        String message = "Property with id = " + PROPERTY_ID + " not found.";
+        PropertyNotFoundException exception = new PropertyNotFoundException(PROPERTY_ID);
+        when(propertyService.getProperty(PROPERTY_ID)).thenThrow(exception);
+
+        mockMvc.perform(get("/properties/" + PROPERTY_ID))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors.length()", equalTo(1)))
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
+                .andExpect(jsonPath("$.errors[0]", equalTo(exception.getMessage())));
     }
 
     @Test

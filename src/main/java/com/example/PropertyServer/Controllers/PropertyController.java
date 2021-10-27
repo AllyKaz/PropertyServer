@@ -7,6 +7,7 @@ import com.example.PropertyServer.ApiError;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
+import com.example.PropertyServer.PropertyNotFoundException;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.PropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.Collection;
@@ -52,8 +54,9 @@ public class PropertyController {
         return propertyService.getAllProperties(searchParameters);
     }
     @GetMapping("/properties/{id}")
-    public Property getProperty(@PathVariable int id) {
-        return propertyService.getProperty(id);
+    public ResponseEntity<Property> getProperty(@PathVariable int id) throws EntityNotFoundException {
+            Property property = propertyService.getProperty(id);
+            return new ResponseEntity<Property>(property, HttpStatus.CREATED);
     }
 
     @GetMapping("/properties/{id}/agent")
@@ -123,6 +126,14 @@ public class PropertyController {
         return new ResponseEntity<>(new ApiError(Collections.emptyList(), HttpStatus.INTERNAL_SERVER_ERROR.toString()),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handlePropertyNotFound(PropertyNotFoundException ex) {
+        return new ResponseEntity<>(new ApiError(Collections.singletonList(ex.getMessage()),
+                HttpStatus.NOT_FOUND.toString()), HttpStatus.NOT_FOUND);
+    }
+
+
 
 
 
