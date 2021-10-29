@@ -1,6 +1,7 @@
 package com.example.PropertyServer.ServiceTests;
 
 import com.example.PropertyServer.Agent.Agent;
+import com.example.PropertyServer.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
@@ -176,6 +177,22 @@ public class PropertyServiceTest {
         List<SaleProperty> returnedProperties = propertyService.getAllSaleProperties(params);
 
         assertThat(returnedProperties).isEqualTo(properties);
+    }
+
+    @Test
+    public void createSalePropertyThrowsAgentNotFoundException() {
+        int AGENT_ID = 1;
+        when(agentRepository.findById(AGENT_ID)).thenThrow(new AgentNotFoundException(AGENT_ID));
+        assertThrows(AgentNotFoundException.class, () -> propertyService.createSaleProperty(
+                mock(SaleProperty.class), AGENT_ID, new MultipartFile[]{mock(MultipartFile.class)}));
+    }
+
+    @Test
+    public void createRentalPropertyThrowsAgentNotFoundException() {
+        int AGENT_ID = 1;
+        when(agentRepository.findById(AGENT_ID)).thenThrow(new AgentNotFoundException(AGENT_ID));
+        assertThrows(AgentNotFoundException.class, () -> propertyService.createRentalProperty(
+                mock(RentalProperty.class), AGENT_ID, new MultipartFile[]{mock(MultipartFile.class)}));
     }
 
 

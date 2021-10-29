@@ -1,6 +1,7 @@
 package com.example.PropertyServer.Services;
 
 import com.example.PropertyServer.Agent.Agent;
+import com.example.PropertyServer.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
@@ -46,7 +47,7 @@ public class PropertyService {
     S3Service s3Service;
 
     public RentalProperty createRentalProperty(RentalProperty property, int agentId, MultipartFile[] images) throws IOException {
-        Agent agent = agentRepository.findById(agentId).orElseThrow();
+        Agent agent = agentRepository.findById(agentId).orElseThrow(() -> new AgentNotFoundException(agentId));
         property = rentalPropertyRepository.save(property);
         addImages(property, images);
         property.setAgent(agent);
@@ -54,7 +55,7 @@ public class PropertyService {
     }
 
     public SaleProperty createSaleProperty(SaleProperty property, int agentId, MultipartFile[] images) throws IOException {
-        Agent agent = agentRepository.findById(agentId).orElseThrow();
+        Agent agent = agentRepository.findById(agentId).orElseThrow(() -> new AgentNotFoundException(agentId));
         property = salePropertyRepository.save(property);
         addImages(property, images);
         property.setAgent(agent);

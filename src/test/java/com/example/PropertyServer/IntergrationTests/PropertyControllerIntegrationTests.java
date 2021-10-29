@@ -376,4 +376,5 @@ public class PropertyControllerIntegrationTests {
                     .andExpect(status().isNotFound())
                     .andExpect(content().string(containsString("errors")));
     }
+
 }

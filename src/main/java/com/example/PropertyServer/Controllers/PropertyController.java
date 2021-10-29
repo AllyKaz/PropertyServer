@@ -3,6 +3,7 @@ package com.example.PropertyServer.Controllers;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.example.PropertyServer.Agent.Agent;
+import com.example.PropertyServer.AgentNotFoundException;
 import com.example.PropertyServer.ApiError;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
@@ -99,7 +100,6 @@ public class PropertyController {
         return agentService.getAgentProperties(id);
     }
 
-
     @PostMapping("/agents/{id}/properties/rentals")
     public ResponseEntity<RentalProperty> addRentalPropertyToAgent(@PathVariable int id,
             @RequestPart @Valid RentalProperty property, @RequestPart MultipartFile... images) throws IOException {
@@ -129,6 +129,12 @@ public class PropertyController {
 
     @ExceptionHandler
     public ResponseEntity<ApiError> handlePropertyNotFound(PropertyNotFoundException ex) {
+        return new ResponseEntity<>(new ApiError(Collections.singletonList(ex.getMessage()),
+                HttpStatus.NOT_FOUND.toString()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleAgentNotFound(AgentNotFoundException ex) {
         return new ResponseEntity<>(new ApiError(Collections.singletonList(ex.getMessage()),
                 HttpStatus.NOT_FOUND.toString()), HttpStatus.NOT_FOUND);
     }

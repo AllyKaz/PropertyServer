@@ -1,6 +1,7 @@
 package com.example.PropertyServer.Services;
 
 import com.example.PropertyServer.Agent.Agent;
+import com.example.PropertyServer.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Repositories.AgentRepository;
 import com.example.PropertyServer.Repositories.PropertyBaseRepository;
@@ -34,10 +35,11 @@ public class AgentService {
     }
 
     public Agent getAgent(int id) {
-        return agentRepository.findById(id).get();
+        return agentRepository.findById(id).orElseThrow(() -> new AgentNotFoundException(id));
     }
 
-    public List<Property> getAgentProperties(int id) { return agentRepository.findById(id).get().getProperties();}
+    public List<Property> getAgentProperties(int id) { return agentRepository.findById(id)
+            .orElseThrow(() -> new AgentNotFoundException(id)).getProperties();}
 
     public Agent getAgentForProperty(int property_id) {
         return propertyBaseRepository.findById(property_id).get().getAgent();

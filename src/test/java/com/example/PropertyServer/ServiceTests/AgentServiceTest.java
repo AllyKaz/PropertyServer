@@ -1,6 +1,7 @@
 package com.example.PropertyServer.ServiceTests;
 
 import com.example.PropertyServer.Agent.Agent;
+import com.example.PropertyServer.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
@@ -25,19 +26,19 @@ import java.util.Optional;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @SpringJUnitConfig
 public class AgentServiceTest {
 
     @Configuration
-    static class config {
+    static class Config {
 
         @Bean
         public AgentService agentService() {
             return new AgentService();
         }
-
 
     }
 
@@ -114,4 +115,20 @@ public class AgentServiceTest {
 
         assertThat(returnedAgent, equalTo(agent));
     }
+
+    @Test
+    public void throwsAgentNotFoundError() {
+        int AGENT_ID = 1;
+        when(agentRepository.findById(AGENT_ID)).thenThrow(new AgentNotFoundException(AGENT_ID));
+        assertThrows(AgentNotFoundException.class, () -> agentService.getAgent(AGENT_ID));
+    }
+
+    @Test
+    public void getPropertiesForAgentThrowsAgentNotFound() {
+        int AGENT_ID = 1;
+        when(agentRepository.findById(AGENT_ID)).thenThrow(new AgentNotFoundException(AGENT_ID));
+        assertThrows(AgentNotFoundException.class, () -> agentService.getAgent(AGENT_ID));
+    }
+
+
 }

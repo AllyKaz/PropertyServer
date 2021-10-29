@@ -411,6 +411,50 @@ public class WebLayerTests {
     }
 
     @Test
+    public void getAgentThrowsError404() throws Exception {
+        int AGENT_ID = 1;
+        when(agentService.getAgent(AGENT_ID)).thenThrow(new AgentNotFoundException(AGENT_ID));
+
+        mockMvc.perform(get("/agents/" + AGENT_ID))
+                .andDo(print())
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
+                .andExpect(jsonPath("$.errors.length()", equalTo(1)))
+                .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void createRentalPropertyThrows404ForAgent() throws Exception {
+        int AGENT_ID = 1;
+        when(propertyService.createRentalProperty(any(RentalProperty.class), anyInt(), any(MultipartFile[].class)))
+                .thenThrow(new AgentNotFoundException(AGENT_ID));
+        MockMultipartFile property = buildPropertyMultiPart(initRentalProperty(initAgent().build()).build());
+
+        mockMvc.perform(multipart("/agents/" + AGENT_ID + "/properties/rentals")
+                .file(property).file(buildImageMultiPart()).with(csrf()))
+                .andDo(print())
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
+                .andExpect(jsonPath("$.errors.length()", equalTo(1)))
+                .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void createSalePropertyThrows404ForAgent() throws Exception {
+        int AGENT_ID = 1;
+        when(propertyService.createSaleProperty(any(SaleProperty.class), anyInt(), any(MultipartFile[].class)))
+                .thenThrow(new AgentNotFoundException(AGENT_ID));
+        MockMultipartFile property = buildPropertyMultiPart(initSaleProperty(initAgent().build()).build());
+
+        mockMvc.perform(multipart("/agents/" + AGENT_ID + "/properties/sales")
+                .file(property).file(buildImageMultiPart()).with(csrf()))
+                .andDo(print())
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
+                .andExpect(jsonPath("$.errors.length()", equalTo(1)))
+                .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
+    }
+
+    @Test
     public void getPropertiesBySpecification() throws Exception {
         MultiValueMap<String, String> params = buildParams();
         List<Property> properties = Arrays.asList(initRentalProperty(initAgent().build()).build(),
