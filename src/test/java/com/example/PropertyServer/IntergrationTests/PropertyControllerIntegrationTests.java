@@ -38,10 +38,13 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static com.example.PropertyServer.Builders.BuilderDirector.*;
+import static com.example.PropertyServer.TestUtils.TestUtils.buildImageMultiPart;
+import static com.example.PropertyServer.TestUtils.TestUtils.buildPropertyMultiPart;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -390,6 +393,22 @@ public class PropertyControllerIntegrationTests {
         mockMvc.perform(get("/agents/" + 1).accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("errors")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void invalidRentalPropertyThrowsError() throws Exception {
+        Agent agent = agentRepository.save(initAgent().build());
+        RentalProperty rentalProperty = initRentalProperty(null).build();
+        rentalProperty.setBedrooms(0);
+        rentalProperty.setLocation(null);
+        rentalProperty.setType(null);
+
+        mockMvc.perform(multipart("/agents/" + agent.getId() + "/properties/rentals")
+                .file(buildPropertyMultiPart(rentalProperty)).file(buildImageMultiPart()).with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("errors")));
     }
 
