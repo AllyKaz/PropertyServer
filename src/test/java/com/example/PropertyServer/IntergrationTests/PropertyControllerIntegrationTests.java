@@ -377,4 +377,12 @@ public class PropertyControllerIntegrationTests {
                     .andExpect(content().string(containsString("errors")));
     }
 
+    @Test
+    public void getAgentForPropertyReturnsErrorForNonExistentProperty() throws Exception {
+        mockMvc.perform(get("/properties/" + 1 + "/agent").accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("errors")));
+    }
+
 }

@@ -455,6 +455,18 @@ public class WebLayerTests {
     }
 
     @Test
+    public void getAgentForPropertyThrows404ForProperty() throws Exception {
+        int PROPERTY_ID = 1;
+        when(agentService.getAgentForProperty(PROPERTY_ID)).thenThrow(new PropertyNotFoundException(PROPERTY_ID));
+
+        mockMvc.perform(get("/properties/" + PROPERTY_ID + "/agent"))
+                .andDo(print())
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
+                .andExpect(jsonPath("$.errors.length()", equalTo(1)))
+                .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
+    }
+
+    @Test
     public void getPropertiesBySpecification() throws Exception {
         MultiValueMap<String, String> params = buildParams();
         List<Property> properties = Arrays.asList(initRentalProperty(initAgent().build()).build(),

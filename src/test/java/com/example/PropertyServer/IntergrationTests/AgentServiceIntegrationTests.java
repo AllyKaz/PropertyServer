@@ -1,8 +1,14 @@
 package com.example.PropertyServer.IntergrationTests;
 
 import com.example.PropertyServer.AgentNotFoundException;
+import com.example.PropertyServer.Property.Property;
+import com.example.PropertyServer.PropertyNotFoundException;
 import com.example.PropertyServer.Services.AgentService;
+import com.example.PropertyServer.Services.PropertyService;
 import com.example.PropertyServer.Services.S3Service;
+import com.example.PropertyServer.SpecificationBuilders.RentalPropertySpecificationBuilder;
+import com.example.PropertyServer.SpecificationBuilders.SalePropertySpecificationBuilder;
+import com.example.PropertyServer.SpecificationBuilders.SpecificationBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -21,6 +27,9 @@ public class AgentServiceIntegrationTests {
         public AgentService agentService() {
             return new AgentService();
         }
+
+        @Bean
+        public PropertyService propertyService() { return new PropertyService();}
     }
 
     @Autowired
@@ -28,6 +37,18 @@ public class AgentServiceIntegrationTests {
 
     @MockBean
     S3Service s3Service;
+
+    @Autowired
+    PropertyService propertyService;
+
+    @MockBean
+    SpecificationBuilder<Property> specificationBuilder;
+
+    @MockBean
+    RentalPropertySpecificationBuilder rentalPropertySpecificationBuilder;
+
+    @MockBean
+    SalePropertySpecificationBuilder salePropertySpecificationBuilder;
 
     @Test
     public void getAgentThrowsAgentNotFoundException() {
@@ -37,6 +58,11 @@ public class AgentServiceIntegrationTests {
     @Test
     public void getAgentPropertiesThrowsAgentNotFoundException() {
         assertThrows(AgentNotFoundException.class, () -> agentService.getAgentProperties(1));
+    }
+
+    @Test
+    public void getAgentForPropertyThrowsPropertyNotFoundException() {
+        assertThrows(PropertyNotFoundException.class, () -> agentService.getAgentForProperty(1));
     }
 
 }

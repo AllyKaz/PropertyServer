@@ -5,6 +5,7 @@ import com.example.PropertyServer.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
+import com.example.PropertyServer.PropertyNotFoundException;
 import com.example.PropertyServer.Repositories.AgentRepository;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.PropertyService;
@@ -128,6 +129,13 @@ public class AgentServiceTest {
         int AGENT_ID = 1;
         when(agentRepository.findById(AGENT_ID)).thenThrow(new AgentNotFoundException(AGENT_ID));
         assertThrows(AgentNotFoundException.class, () -> agentService.getAgent(AGENT_ID));
+    }
+
+    @Test
+    public void getAgentForPropertyThrowsPropertyNotFound() {
+        int PROPERTY_ID = 1;
+        when(propertyService.getProperty(PROPERTY_ID)).thenThrow(new PropertyNotFoundException(PROPERTY_ID));
+        assertThrows(PropertyNotFoundException.class, () -> agentService.getAgentForProperty(PROPERTY_ID));
     }
 
 
