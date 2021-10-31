@@ -385,4 +385,12 @@ public class PropertyControllerIntegrationTests {
                 .andExpect(content().string(containsString("errors")));
     }
 
+    @Test
+    public void getNonExistentAgentThrowsReturnsError() throws Exception {
+        mockMvc.perform(get("/agents/" + 1).accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("errors")));
+    }
+
 }
