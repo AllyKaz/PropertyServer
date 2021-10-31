@@ -11,7 +11,6 @@ import com.example.PropertyServer.Repositories.SalePropertyRepository;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.PropertyService;
 import com.example.PropertyServer.TestUtils.RentalPropertyMatcher;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.example.PropertyServer.Builders.BuilderDirector.*;
+import static com.example.PropertyServer.TestUtils.TestUtils.buildImageMultiPart;
+import static com.example.PropertyServer.TestUtils.TestUtils.buildPropertyMultiPart;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -535,14 +536,7 @@ public class WebLayerTests {
         return params;
     }
 
-    private MockMultipartFile buildPropertyMultiPart(Property property) throws JsonProcessingException {
-        return new MockMultipartFile("property", "property", "application/json",
-                mapper.writeValueAsString(property).getBytes());
-    }
 
-    private MockMultipartFile buildImageMultiPart() {
-        return new MockMultipartFile("images", "image", "image/jpeg", "image".getBytes());
-    }
 
 
 
