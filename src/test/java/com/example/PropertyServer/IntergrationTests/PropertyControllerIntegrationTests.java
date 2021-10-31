@@ -412,4 +412,20 @@ public class PropertyControllerIntegrationTests {
                 .andExpect(content().string(containsString("errors")));
     }
 
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void invalidSalePropertyThrowsError() throws Exception {
+        Agent agent = agentRepository.save(initAgent().build());
+        SaleProperty saleProperty = initSaleProperty(null).build();
+        saleProperty.setBedrooms(0);
+        saleProperty.setLocation(null);
+        saleProperty.setType(null);
+
+        mockMvc.perform(multipart("/agents/" + agent.getId() + "/properties/rentals")
+                .file(buildPropertyMultiPart(saleProperty)).file(buildImageMultiPart()).with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(is(notNullValue())));
+    }
+
 }
