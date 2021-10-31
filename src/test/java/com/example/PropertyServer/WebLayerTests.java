@@ -330,8 +330,7 @@ public class WebLayerTests {
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp",
-                        matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*")))
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(3)));
     }
 
@@ -348,8 +347,7 @@ public class WebLayerTests {
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp",
-                        matchesPattern(TIMESTAMP_REGEX)))
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(3)));
     }
 
@@ -366,8 +364,7 @@ public class WebLayerTests {
         mockMvc.perform(multipart("/agents").file(agentFile).file(logoFile).with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp",
-                        matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*")))
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(2)))
                 .andExpect(jsonPath("$.status", equalTo(HttpStatus.BAD_REQUEST.toString())));
     }
@@ -385,8 +382,7 @@ public class WebLayerTests {
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp",
-                        matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*")))
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(4)));
 
     }
@@ -404,8 +400,7 @@ public class WebLayerTests {
                 .file(buildPropertyMultiPart(saleProperty)).file(buildImageMultiPart())
                 .with(csrf()))
                 .andDo(print())
-                .andExpect(jsonPath("$.timestamp",
-                        matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*")))
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(0)))
                 .andExpect(jsonPath("$.status", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.toString())));
     }
