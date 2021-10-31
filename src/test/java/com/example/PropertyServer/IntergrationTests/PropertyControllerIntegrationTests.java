@@ -370,7 +370,7 @@ public class PropertyControllerIntegrationTests {
     }
 
     @Test
-    public void getNonExistentPropertyThrowsException() throws Exception {
+    public void getNonExistentPropertyThrowsError() throws Exception {
             mockMvc.perform(get("/properties/" + 1).accept(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isNotFound())
