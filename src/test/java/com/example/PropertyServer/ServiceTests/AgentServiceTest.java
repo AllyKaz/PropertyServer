@@ -6,8 +6,8 @@ import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
 import com.example.PropertyServer.Repositories.AgentRepository;
-import com.example.PropertyServer.Repositories.PropertyBaseRepository;
 import com.example.PropertyServer.Services.AgentService;
+import com.example.PropertyServer.Services.PropertyService;
 import com.example.PropertyServer.Services.S3Service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ public class AgentServiceTest {
     AgentService agentService;
 
     @MockBean
-    PropertyBaseRepository<Property> propertyBaseRepository;
+    PropertyService propertyService;
 
 
     @Test
@@ -108,7 +108,7 @@ public class AgentServiceTest {
         Property property = mock(Property.class);
         Agent agent = mock(Agent.class);
         int PROPERTY_ID = 1;
-        when(propertyBaseRepository.findById(PROPERTY_ID)).thenReturn(Optional.ofNullable(property));
+        when(propertyService.getProperty(PROPERTY_ID)).thenReturn(property);
         when(property.getAgent()).thenReturn(agent);
 
         Agent returnedAgent = agentService.getAgentForProperty(PROPERTY_ID);
