@@ -4,6 +4,7 @@ import com.example.PropertyServer.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
+import com.example.PropertyServer.PropertyNotFoundException;
 import com.example.PropertyServer.Services.PropertyService;
 import com.example.PropertyServer.Services.S3Service;
 import com.example.PropertyServer.SpecificationBuilders.RentalPropertySpecificationBuilder;
@@ -60,6 +61,13 @@ public class PropertyServiceIntegrationTests {
         int AGENT_ID = 1;
         assertThrows(AgentNotFoundException.class, () -> propertyService.createRentalProperty(
                 mock(RentalProperty.class), AGENT_ID, new MultipartFile[]{mock(MultipartFile.class)}));
+    }
+
+    @Test
+    public void addImagesToPropertyThrowsPropertyNotFoundException() {
+        int PROPERTY_ID = 1;
+        assertThrows(PropertyNotFoundException.class, () -> propertyService.addImagesToProperty(PROPERTY_ID,
+                new MultipartFile[]{mock(MultipartFile.class)}));
     }
 
 }

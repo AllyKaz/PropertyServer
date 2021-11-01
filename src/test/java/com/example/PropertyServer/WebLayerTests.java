@@ -463,6 +463,24 @@ public class WebLayerTests {
     }
 
     @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void addImagesToPropertyThrows404ForProperty() throws Exception {
+        int PROPERTY_ID = 1;
+        when(propertyService.addImagesToProperty(anyInt(), any(MultipartFile[].class)))
+                .thenThrow(new PropertyNotFoundException(PROPERTY_ID));
+
+        mockMvc.perform(multipart("/properties/" + PROPERTY_ID + "/images")
+                .file(buildImageMultiPart()).file(buildImageMultiPart()).file(buildImageMultiPart())
+                .with(request -> {request.setMethod("PATCH"); return request;})
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
+                .andExpect(jsonPath("$.errors.length()", equalTo(1)))
+                .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
+    }
+
+    @Test
     public void getPropertiesBySpecification() throws Exception {
         MultiValueMap<String, String> params = buildParams();
         List<Property> properties = Arrays.asList(initRentalProperty(initAgent().build()).build(),

@@ -415,4 +415,17 @@ public class PropertyControllerIntegrationTests {
                 .andExpect(content().string(is(notNullValue())));
     }
 
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void addImagesToPropertyThrowsError() throws Exception {
+        int PROPERTY_ID = 1;
+        mockMvc.perform(multipart("/properties/" + PROPERTY_ID + "/images")
+                .file(buildImageMultiPart()).file(buildImageMultiPart()).file(buildImageMultiPart())
+                .with(request -> {request.setMethod("PATCH"); return request;})
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(is(notNullValue())));
+    }
+
 }

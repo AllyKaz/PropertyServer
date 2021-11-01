@@ -86,7 +86,8 @@ public class PropertyController {
     }
 
     @PostMapping("/agents")
-    public ResponseEntity<Agent> addAgent(@RequestPart @Valid Agent agent, @RequestPart MultipartFile logo) throws IOException {
+    public ResponseEntity<Agent> addAgent(@RequestPart @Valid Agent agent, @RequestPart MultipartFile logo)
+            throws IOException {
         return new ResponseEntity<Agent>(agentService.createAgent(agent, logo), HttpStatus.CREATED);
     }
 

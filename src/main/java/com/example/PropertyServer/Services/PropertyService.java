@@ -69,8 +69,9 @@ public class PropertyService {
         }
     }
 
-    public Property addImagesToProperty(int imageId, MultipartFile[] images) throws IOException {
-        Property property = propertyBaseRepository.findById(imageId).orElseThrow();
+    public Property addImagesToProperty(int id, MultipartFile[] images) throws IOException {
+        Property property = propertyBaseRepository.findById(id)
+                .orElseThrow(() -> new PropertyNotFoundException(id));
         addImages(property, images);
         return propertyBaseRepository.save(property);
     }

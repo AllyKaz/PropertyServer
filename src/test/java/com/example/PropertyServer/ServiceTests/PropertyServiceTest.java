@@ -195,6 +195,15 @@ public class PropertyServiceTest {
                 mock(RentalProperty.class), AGENT_ID, new MultipartFile[]{mock(MultipartFile.class)}));
     }
 
+    @Test
+    public void addImagesThrowsPropertyNotFound() {
+        int PROPERTY_ID = 1;
+        when(propertyBaseRepository.findById(PROPERTY_ID)).thenThrow(new PropertyNotFoundException(PROPERTY_ID));
+
+        assertThrows(PropertyNotFoundException.class, () -> propertyService.addImagesToProperty(PROPERTY_ID,
+                new MultipartFile[]{mock(MultipartFile.class)}));
+    }
+
 
 
 
