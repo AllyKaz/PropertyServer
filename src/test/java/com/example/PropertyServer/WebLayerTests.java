@@ -401,6 +401,7 @@ public class WebLayerTests {
                 .file(buildPropertyMultiPart(saleProperty)).file(buildImageMultiPart())
                 .with(csrf()))
                 .andDo(print())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(0)))
                 .andExpect(jsonPath("$.status", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.toString())));
@@ -413,6 +414,7 @@ public class WebLayerTests {
 
         mockMvc.perform(get("/agents/" + AGENT_ID))
                 .andDo(print())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(1)))
                 .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
@@ -429,6 +431,7 @@ public class WebLayerTests {
         mockMvc.perform(multipart("/agents/" + AGENT_ID + "/properties/rentals")
                 .file(property).file(buildImageMultiPart()).with(csrf()))
                 .andDo(print())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(1)))
                 .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
@@ -445,6 +448,7 @@ public class WebLayerTests {
         mockMvc.perform(multipart("/agents/" + AGENT_ID + "/properties/sales")
                 .file(property).file(buildImageMultiPart()).with(csrf()))
                 .andDo(print())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(1)))
                 .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
@@ -457,6 +461,7 @@ public class WebLayerTests {
 
         mockMvc.perform(get("/properties/" + PROPERTY_ID + "/agent"))
                 .andDo(print())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
                 .andExpect(jsonPath("$.errors.length()", equalTo(1)))
                 .andExpect(jsonPath("$.status", equalTo(HttpStatus.NOT_FOUND.toString())));
@@ -523,30 +528,7 @@ public class WebLayerTests {
                 .andExpect(content().json(mapper.writeValueAsString(properties)));
 
     }
-    /*
-    static List<MultiValueMap<String, String>> getPropertiesBySpecification_unused() {
-        List<MultiValueMap<String, String>> result = new ArrayList<MultiValueMap<String, String>>();
-        MultiValueMap<String, String> tempMap = new LinkedMultiValueMap<>();
-        generateParams(result, 0, tempMap, 5);
-        return result;
-    }
 
-    private static String[] names = new String[]{"city", "postcode", "type", "min", "max"};
-
-    private static void generateParams(List<MultiValueMap<String, String>> result, int i,
-                                       MultiValueMap<String, String> tempMap, int n) {
-
-        if(i == n) {
-            result.add(new LinkedMultiValueMap<>(tempMap));
-            return;
-        }
-
-        tempMap.put(names[i], Arrays.asList(names[i]));
-        generateParams(result, i +1, tempMap, n);
-
-        tempMap.remove(names[i]);
-        generateParams(result, i + 1, tempMap, n);
-    }*/
     private MultiValueMap<String, String> buildParams() {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("key", "value");
