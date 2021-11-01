@@ -17,7 +17,7 @@ public class S3Service {
     @Autowired
     AmazonS3 s3;
 
-    public static final String S3_BUCKET_NAME = "propertytestbucket";
+    public static final String S3_BUCKET_NAME = "propertyserverbucket";
 
 
     public URL save(MultipartFile multipartFile, String filename) throws IOException {
