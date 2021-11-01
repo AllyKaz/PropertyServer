@@ -28,18 +28,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import javax.servlet.ServletContext;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static com.example.PropertyServer.Builders.BuilderDirector.*;
-import static com.example.PropertyServer.TestUtils.TestUtils.buildImageMultiPart;
-import static com.example.PropertyServer.TestUtils.TestUtils.buildPropertyMultiPart;
+import static com.example.PropertyServer.TestUtils.TestUtils.*;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -164,22 +160,23 @@ public class PropertyControllerIntegrationTests {
     public void addRentalProperty() throws Exception {
         Agent agent = agentRepository.save(initAgent().build());
         RentalProperty rentalProperty = initRentalProperty(null).withImages(Collections.emptyList()).build();
-        String json = mapper.writeValueAsString(rentalProperty);
-        MockMultipartFile jsonMultiPart = new MockMultipartFile("property", "newProperty",
-                "application/json", json.getBytes());
-
-        List<MockMultipartFile> files = createImageMultipart(3);
+        List<MockMultipartFile> images = createImageMultipart(3);
 
         mockMvc.perform(multipart("/agents/" + agent.getId() + "/properties/rentals")
-                .file(jsonMultiPart).file(files.get(0)).file(files.get(1)).file(files.get(2)).with(csrf()))
+                .file(buildPropertyMultiPart(rentalProperty))
+                .file(images.get(0)).file(images.get(1)).file(images.get(2))
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(notNullValue())))
                 .andExpect(jsonPath("$.location", is(rentalProperty.getLocation()), Location.class))
                 .andExpect(jsonPath("$.bedrooms", is(rentalProperty.getBedrooms())))
-                .andExpect(jsonPath("$.images[0]", matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_2_image_0")))
-                .andExpect(jsonPath("$.images[1]", matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_2_image_1")))
-                .andExpect(jsonPath("$.images[2]", matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_2_image_2")))
+                .andExpect(jsonPath("$.images[0]",
+                        matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_2_image_0")))
+                .andExpect(jsonPath("$.images[1]",
+                        matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_2_image_1")))
+                .andExpect(jsonPath("$.images[2]",
+                        matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_2_image_2")))
                 .andExpect(jsonPath("$", hasNoJsonPath("$.agent")))
                 .andExpect(jsonPath("$.monthlyRent", is(rentalProperty.getMonthlyRent())));
     }
@@ -188,54 +185,44 @@ public class PropertyControllerIntegrationTests {
     @WithMockUser(username="admin", roles="ADMIN")
     public void addSaleProperty() throws Exception {
         Agent agent = agentRepository.save(initAgent().build());
-        SaleProperty saleProperty = salePropertyRepository.save(initSaleProperty(null)
-                .withImages(Collections.emptyList()).build());
-        MockMultipartFile jsonMultiPart = new MockMultipartFile("property", "newProperty",
-                "application/json", mapper.writeValueAsString(saleProperty).getBytes());
-
-        List<MockMultipartFile> files = createImageMultipart(3);
+        SaleProperty saleProperty = initSaleProperty(null).withImages(Collections.emptyList()).build();
+        List<MockMultipartFile> images = createImageMultipart(3);
 
         mockMvc.perform(multipart("/agents/" + agent.getId() + "/properties/sales")
-                .file(jsonMultiPart).file(files.get(0)).file(files.get(1)).file(files.get(2)).with(csrf()))
+                .file(buildPropertyMultiPart(saleProperty))
+                .file(images.get(0)).file(images.get(1)).file(images.get(2))
+                .with(csrf()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(notNullValue())))
                 .andExpect(jsonPath("$.location", is(saleProperty.getLocation()), Location.class))
                 .andExpect(jsonPath("$.bedrooms", is(saleProperty.getBedrooms())))
-                .andExpect(jsonPath("$.images[0]", matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_\\d_image_0")))
-                .andExpect(jsonPath("$.images[1]", matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_\\d_image_1")))
-                .andExpect(jsonPath("$.images[2]", matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_\\d_image_2")))
+                .andExpect(jsonPath("$.images[0]",
+                        matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_\\d_image_0")))
+                .andExpect(jsonPath("$.images[1]",
+                        matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_\\d_image_1")))
+                .andExpect(jsonPath("$.images[2]",
+                        matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_\\d_image_2")))
                 .andExpect(jsonPath("$", hasNoJsonPath("$.agent")))
                 .andExpect(jsonPath("$.price", is(saleProperty.getPrice())));
 
     }
 
-    private List<MockMultipartFile> createImageMultipart(int size) {
-        List<MockMultipartFile> files = new ArrayList<>();
-        IntStream.range(0, size).forEach(i -> {
-            String filename = "test_image_" + (i + 1) + ".jpeg";
-            try {
-                Path path = new ClassPathResource(filename).getFile().toPath();
-                files.add(new MockMultipartFile("images", filename, "image/jpg",
-                        Files.readAllBytes(path)));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        return files;
-    }
 
     @Test
     @WithMockUser(username="admin", roles="ADMIN")
     public void addImagesToProperty() throws Exception {
         RentalProperty property = rentalPropertyRepository.save(
                 initRentalProperty(agentRepository.save(initAgent().build())).withImages(Collections.emptyList()).build());
-        List<MockMultipartFile> files = createImageMultipart(3);
+
         MockMultipartHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .multipart("/properties/" + property.getId() + "/images");
         builder.with(request -> { request.setMethod("PATCH"); return request;});
 
+        List<MockMultipartFile> images = createImageMultipart(3);
+
         mockMvc.perform(builder
-                .file(files.get(0)).file(files.get(1)).file(files.get(2)).with(csrf()))
+                .file(images.get(0)).file(images.get(1)).file(images.get(2))
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.images[0]", matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_\\d_image_0")))
                 .andExpect(jsonPath("$.images[1]", matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "property_\\d_image_1")))
