@@ -41,7 +41,6 @@ public class S3ServiceIntegrationTest {
     public void canUploadImage() throws IOException {
         MultipartFile image = TestUtils.createImageMultipart(1).get(0);
         URL url = s3Service.save(image, "filename");
-        System.out.println(url.toExternalForm());
         assertThat(url.toExternalForm(), matchesPattern(AMAZON_S3_BUCKET_URL_REGEX + "filename"));
     }
 }
