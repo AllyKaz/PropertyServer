@@ -96,6 +96,9 @@ public class WebLayerTests {
 
     private final String TIMESTAMP_REGEX = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d*";
 
+    private final String USERNAME = "admin";
+    private final String PASSWORD = "password";
+
 
     @Test
     public void getAllProperties() throws Exception {
@@ -162,7 +165,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username="admin", roles="ADMIN")
+    @WithMockUser(username=USERNAME, roles= "ADMIN")
     public void addRentalProperty() throws Exception {
         Agent agent = initAgent().build();
         agent.setId(1);
@@ -189,7 +192,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username="admin", roles="ADMIN")
+    @WithMockUser(username= USERNAME, roles= "ADMIN")
     public void addSaleProperty() throws Exception {
         Agent agent = initAgent().build();
         agent.setId(1);
@@ -222,7 +225,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = USERNAME, roles = "ADMIN")
     public void createAgent() throws Exception {
         Agent agent = initAgent().build();
         MockMultipartFile logoFile = buildLogoMultiPart();
@@ -320,7 +323,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = USERNAME, roles = "ADMIN")
     public void invalidRentalPropertyReturnsBadRequestAndErrorMessage() throws Exception {
         RentalProperty property = initRentalProperty(initAgent().build())
                 .withType(null).withLocation(null).withBedrooms(0)
@@ -337,7 +340,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = USERNAME, roles = "ADMIN")
     public void invalidSalePropertyReturnsBadRequestAndErrorMessage() throws Exception {
         SaleProperty property = initSaleProperty(initAgent().build())
                 .withType(null).withLocation(null).withBedrooms(0)
@@ -354,7 +357,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = USERNAME, roles = "ADMIN")
     public void invalidAgentReturnsBadRequest() throws Exception {
         Agent agent = initAgent().withName(null).withLocation(null).build();
 
@@ -369,7 +372,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles="ADMIN")
+    @WithMockUser(username = USERNAME, roles="ADMIN")
     public void invalidLocationReturnsBadRequest() throws Exception {
         Agent agent = initAgent().build();
         RentalProperty rentalProperty = initRentalProperty(agent)
@@ -387,7 +390,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = USERNAME, roles = "ADMIN")
     public void throwsIOException() throws Exception {
         final int AGENT_ID = 1;
         SaleProperty saleProperty = initSaleProperty(initAgent().build()).build();
@@ -419,7 +422,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = USERNAME, roles = "ADMIN")
     public void createRentalPropertyThrows404ForAgent() throws Exception {
         int AGENT_ID = 1;
         when(propertyService.createRentalProperty(any(RentalProperty.class), anyInt(), any(MultipartFile[].class)))
@@ -436,7 +439,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = USERNAME, roles = "ADMIN")
     public void createSalePropertyThrows404ForAgent() throws Exception {
         int AGENT_ID = 1;
         when(propertyService.createSaleProperty(any(SaleProperty.class), anyInt(), any(MultipartFile[].class)))
@@ -466,7 +469,7 @@ public class WebLayerTests {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = USERNAME, roles = "ADMIN")
     public void addImagesToPropertyThrows404ForProperty() throws Exception {
         int PROPERTY_ID = 1;
         when(propertyService.addImagesToProperty(anyInt(), any(MultipartFile[].class)))
@@ -535,7 +538,7 @@ public class WebLayerTests {
 
         mockMvc.perform(multipart("/agents/1/properties/sales")
                 .file(TestUtils.buildPropertyMultiPart(property)).file(buildImageMultiPart())
-                .with(httpBasic("admin", "password"))
+                .with(httpBasic(USERNAME, PASSWORD))
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated());
@@ -549,7 +552,7 @@ public class WebLayerTests {
 
         mockMvc.perform(multipart("/agents/1/properties/rentals")
                 .file(buildPropertyMultiPart(property)).file(buildImageMultiPart())
-                .with(httpBasic("admin", "password"))
+                .with(httpBasic(USERNAME, PASSWORD))
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated());
@@ -563,7 +566,7 @@ public class WebLayerTests {
 
         mockMvc.perform(multipart("/agents")
                 .file(buildAgentMultiPart(agent)).file(buildLogoMultiPart())
-                .with(httpBasic("admin", "password"))
+                .with(httpBasic(USERNAME, PASSWORD))
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated());
@@ -577,7 +580,7 @@ public class WebLayerTests {
         mockMvc.perform(multipart("/properties/1/images")
                 .file(buildImageMultiPart())
                 .with(request -> {request.setMethod("PATCH"); return request;})
-                .with(httpBasic("admin", "password"))
+                .with(httpBasic(USERNAME, PASSWORD))
                 .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
