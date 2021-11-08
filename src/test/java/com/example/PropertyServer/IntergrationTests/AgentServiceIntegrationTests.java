@@ -1,8 +1,8 @@
 package com.example.PropertyServer.IntergrationTests;
 
-import com.example.PropertyServer.AgentNotFoundException;
+import com.example.PropertyServer.Exceptions.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
-import com.example.PropertyServer.PropertyNotFoundException;
+import com.example.PropertyServer.Exceptions.PropertyNotFoundException;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.PropertyService;
 import com.example.PropertyServer.Services.S3Service;

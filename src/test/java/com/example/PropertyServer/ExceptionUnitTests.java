@@ -1,5 +1,6 @@
 package com.example.PropertyServer;
 
+import com.example.PropertyServer.Exceptions.AgentNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

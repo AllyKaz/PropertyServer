@@ -1,4 +1,4 @@
-package com.example.PropertyServer;
+package com.example.PropertyServer.Exceptions;
 
 public class PropertyNotFoundException extends RuntimeException {
 

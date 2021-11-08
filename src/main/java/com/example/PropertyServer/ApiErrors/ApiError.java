@@ -1,4 +1,4 @@
-package com.example.PropertyServer;
+package com.example.PropertyServer.ApiErrors;
 
 import java.time.LocalDateTime;
 import java.util.List;

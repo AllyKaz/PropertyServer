@@ -1,11 +1,11 @@
 package com.example.PropertyServer.ServiceTests;
 
 import com.example.PropertyServer.Agent.Agent;
-import com.example.PropertyServer.AgentNotFoundException;
+import com.example.PropertyServer.Exceptions.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
-import com.example.PropertyServer.PropertyNotFoundException;
+import com.example.PropertyServer.Exceptions.PropertyNotFoundException;
 import com.example.PropertyServer.Repositories.AgentRepository;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.PropertyService;

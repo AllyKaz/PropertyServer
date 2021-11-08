@@ -1,7 +1,7 @@
 package com.example.PropertyServer.Services;
 
 import com.example.PropertyServer.Agent.Agent;
-import com.example.PropertyServer.AgentNotFoundException;
+import com.example.PropertyServer.Exceptions.AgentNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Repositories.AgentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
