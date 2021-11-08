@@ -44,6 +44,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -428,6 +429,23 @@ public class PropertyControllerIntegrationTests {
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(is(notNullValue())));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void addRentalPropertyWithNoFilesThrowsError() throws Exception {
+        mockMvc.perform(multipart("/agents/1/properties/rentals")
+                .file("property", "{}".getBytes()).file(buildImageMultiPart())
+                .with(csrf()))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void testBasicAuth() throws Exception {
+        mockMvc.perform(multipart("/agents/1/properties/rentals")
+                .with(httpBasic("admin", "password")).with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
 }

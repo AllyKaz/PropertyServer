@@ -11,6 +11,7 @@ import com.example.PropertyServer.Repositories.SalePropertyRepository;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.PropertyService;
 import com.example.PropertyServer.TestUtils.RentalPropertyMatcher;
+import com.example.PropertyServer.TestUtils.TestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -33,8 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.example.PropertyServer.Builders.BuilderDirector.*;
-import static com.example.PropertyServer.TestUtils.TestUtils.buildImageMultiPart;
-import static com.example.PropertyServer.TestUtils.TestUtils.buildPropertyMultiPart;
+import static com.example.PropertyServer.TestUtils.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -44,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -527,6 +528,62 @@ public class WebLayerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(properties)));
 
+    }
+
+    @Test
+    public void addSalePropertyWithBasicAuth() throws Exception {
+        SaleProperty property = initSaleProperty(initAgent().build()).build();
+
+        when(propertyService.createSaleProperty(any(), anyInt(), any())).thenReturn(property);
+
+        mockMvc.perform(multipart("/agents/1/properties/sales")
+                .file(TestUtils.buildPropertyMultiPart(property)).file(buildImageMultiPart())
+                .with(httpBasic("admin", "password"))
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void addRentalPropertyWithBasicAuth() throws Exception {
+        RentalProperty property = initRentalProperty(initAgent().build()).build();
+
+        when(propertyService.createRentalProperty(any(), anyInt(), any())).thenReturn(property);
+
+        mockMvc.perform(multipart("/agents/1/properties/rentals")
+                .file(buildPropertyMultiPart(property)).file(buildImageMultiPart())
+                .with(httpBasic("admin", "password"))
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void addAgentWithBasicAuth() throws Exception {
+        Agent agent = initAgent().build();
+
+        when(agentService.createAgent(any(), any())).thenReturn(agent);
+
+        mockMvc.perform(multipart("/agents")
+                .file(buildAgentMultiPart(agent)).file(buildLogoMultiPart())
+                .with(httpBasic("admin", "password"))
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void addImagesToPropertyWithBasicAuth() throws Exception {
+        when(propertyService.addImagesToProperty(anyInt(), any()))
+                .thenReturn(initRentalProperty(initAgent().build()).build());
+
+        mockMvc.perform(multipart("/properties/1/images")
+                .file(buildImageMultiPart())
+                .with(request -> {request.setMethod("PATCH"); return request;})
+                .with(httpBasic("admin", "password"))
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
     private MultiValueMap<String, String> buildParams() {
