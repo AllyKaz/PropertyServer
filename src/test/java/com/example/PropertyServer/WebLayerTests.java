@@ -225,14 +225,14 @@ public class WebLayerTests {
     @WithMockUser(username = "admin", roles = "ADMIN")
     public void createAgent() throws Exception {
         Agent agent = initAgent().build();
-        MockMultipartFile logoFile = new MockMultipartFile("logo", "logo",
-                "image/jpeg", "image".getBytes());
-        MockMultipartFile agentFile = new MockMultipartFile("agent", "agent",
-                "application/json", mapper.writeValueAsString(agent).getBytes());
+        MockMultipartFile logoFile = buildLogoMultiPart();
+        MockMultipartFile agentFile = buildAgentMultiPart(agent);
 
         when(agentService.createAgent(any(Agent.class), any(MultipartFile.class))).thenReturn(agent);
 
-        mockMvc.perform(multipart("/agents").file(agentFile).file(logoFile).with(csrf()))
+        mockMvc.perform(multipart("/agents")
+                .file(agentFile).file(logoFile)
+                .with(csrf()))
                 .andExpect(status().isCreated())
                 .andExpect(content().json(mapper.writeValueAsString(agent)));
 
@@ -357,13 +357,10 @@ public class WebLayerTests {
     @WithMockUser(username = "admin", roles = "ADMIN")
     public void invalidAgentReturnsBadRequest() throws Exception {
         Agent agent = initAgent().withName(null).withLocation(null).build();
-        MockMultipartFile agentFile = new MockMultipartFile("agent", "agent",
-                "application/json", mapper.writeValueAsString(agent).getBytes());
 
-        MockMultipartFile logoFile = new MockMultipartFile("logo", "logo",
-                "image/jpeg", "image".getBytes());
-
-        mockMvc.perform(multipart("/agents").file(agentFile).file(logoFile).with(csrf()))
+        mockMvc.perform(multipart("/agents")
+                .file(buildAgentMultiPart(agent)).file(buildLogoMultiPart())
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.timestamp", matchesPattern(TIMESTAMP_REGEX)))
@@ -392,11 +389,11 @@ public class WebLayerTests {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     public void throwsIOException() throws Exception {
+        final int AGENT_ID = 1;
         SaleProperty saleProperty = initSaleProperty(initAgent().build()).build();
 
         when(propertyService.createSaleProperty(any(SaleProperty.class), anyInt(), any(MultipartFile[].class)))
                 .thenThrow(new IOException());
-        final int AGENT_ID = 1;
 
         mockMvc.perform(multipart("/agents/" + AGENT_ID + "/properties/sales")
                 .file(buildPropertyMultiPart(saleProperty)).file(buildImageMultiPart())
