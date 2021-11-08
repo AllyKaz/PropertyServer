@@ -1,5 +1,6 @@
 package com.example.PropertyServer.TestUtils;
 
+import com.example.PropertyServer.Agent.Agent;
 import com.example.PropertyServer.Property.Property;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,8 +23,17 @@ public class TestUtils {
                 mapper.writeValueAsString(property).getBytes());
     }
 
+    public static MockMultipartFile buildAgentMultiPart(Agent agent) throws JsonProcessingException {
+        return new MockMultipartFile("agent", "agent", "application/json",
+                mapper.writeValueAsString(agent).getBytes());
+    }
+
     public static MockMultipartFile buildImageMultiPart() {
         return new MockMultipartFile("images", "image", "image/jpeg", "image".getBytes());
+    }
+
+    public static MockMultipartFile buildLogoMultiPart() {
+        return new MockMultipartFile("logo", "logo", "image/jpeg", "logo".getBytes());
     }
 
     public static List<MockMultipartFile> createImageMultipart(int size) {
