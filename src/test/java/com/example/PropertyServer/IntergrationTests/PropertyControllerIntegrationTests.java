@@ -14,6 +14,7 @@ import com.example.PropertyServer.Services.S3Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -79,6 +80,15 @@ public class PropertyControllerIntegrationTests {
             "https://" + S3Service.S3_BUCKET_NAME + "\\.s3\\.eu-west-2\\.amazonaws\\.com/";
 
     ObjectMapper mapper = new ObjectMapper();
+
+    private final String USERNAME;
+    private final String PASSWORD;
+
+    public PropertyControllerIntegrationTests(@Value("${spring.security.user.name}") String username,
+            @Value("${spring.security.user.password}") String password) {
+        this.USERNAME = username;
+        this.PASSWORD = password;
+    }
 
     @Test
     public void getAllProperties() throws Exception {
@@ -256,25 +266,25 @@ public class PropertyControllerIntegrationTests {
     @Test
     void authorisationRequiredToAddAgent() throws Exception {
         mockMvc.perform(multipart("/agents").with(csrf()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void authorisationRequiredToAddSaleProperty() throws Exception {
         mockMvc.perform(multipart("/agents/1/properties/rentals").with(csrf()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void authorisationRequiredToAddRentalProperty() throws Exception {
         mockMvc.perform(multipart("/agents/1/properties/sale").with(csrf()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void authorisationRequiredToAddImagesToProperty() throws Exception {
         mockMvc.perform(multipart("/property/1/images").with(csrf()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -430,22 +440,57 @@ public class PropertyControllerIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(is(notNullValue())));
     }
-
+    
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    public void addRentalPropertyWithNoFilesThrowsError() throws Exception {
-        mockMvc.perform(multipart("/agents/1/properties/rentals")
-                .file("property", "{}".getBytes()).file(buildImageMultiPart())
+    public void addRentalPropertyWithBasicAuth() throws Exception {
+        Agent agent = agentRepository.save(initAgent().build());
+        RentalProperty property = initRentalProperty(agent).build();
+
+        mockMvc.perform(multipart("/agents/" + agent.getId() + "/properties/rentals")
+                .file(buildPropertyMultiPart(property)).file(buildImageMultiPart())
+                .with(httpBasic(USERNAME, PASSWORD))
                 .with(csrf()))
+                .andDo(print())
                 .andExpect(status().isCreated());
     }
 
     @Test
-    public void testBasicAuth() throws Exception {
-        mockMvc.perform(multipart("/agents/1/properties/rentals")
-                .with(httpBasic("admin", "password")).with(csrf()))
+    public void addSalePropertyWithBasicAuth() throws Exception {
+        Agent agent = agentRepository.save(initAgent().build());
+        RentalProperty property = initRentalProperty(agent).build();
+
+        mockMvc.perform(multipart("/agents/" + agent.getId() +" /properties/sales")
+                .file(buildPropertyMultiPart(property)).file(buildImageMultiPart())
+                .with(httpBasic(USERNAME, PASSWORD))
+                .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void addAgentWithBasicAuth() throws Exception {
+        Agent agent = initAgent().build();
+
+        mockMvc.perform(multipart("/agents")
+                .file(buildAgentMultiPart(agent)).file(buildLogoMultiPart())
+                .with(httpBasic(USERNAME, PASSWORD))
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void addImagesToPropertyWithBasicAuth() throws Exception {
+        Agent agent = agentRepository.save(initAgent().build());
+        Property property = rentalPropertyRepository.save(initRentalProperty(agent).build());
+
+        mockMvc.perform(multipart("/properties/" + property.getId() + "/images")
+                .file(buildImageMultiPart())
+                .with(request -> {request.setMethod("PATCH"); return request;})
+                .with(httpBasic(USERNAME, PASSWORD))
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
 }
