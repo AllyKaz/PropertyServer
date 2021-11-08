@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.example.PropertyServer.Services.S3Service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,9 +24,12 @@ public class S3ServiceTest {
     @Configuration
     static class Config {
 
+        @Value("${s3.bucket.name}")
+        String bucketname;
+
         @Bean
         public S3Service s3Service() {
-            return new S3Service();
+            return new S3Service(bucketname);
         }
 
     }
@@ -36,12 +40,18 @@ public class S3ServiceTest {
     @Autowired
     S3Service s3Service;
 
+    final String S3_BUCKET_NAME;
+
+    public S3ServiceTest(@Value("${s3.bucket.name}") String bucketname ) {
+        this.S3_BUCKET_NAME = bucketname;
+    }
+
     @Test
     public void canUploadFile() throws IOException {
         MultipartFile multipartFile = mock(MultipartFile.class);
         URL url = new URL("https://url");
         String filename = "property_image_1_1";
-        when(s3.getUrl(eq(S3Service.S3_BUCKET_NAME), eq(filename))).thenReturn(url);
+        when(s3.getUrl(eq(S3_BUCKET_NAME), eq(filename))).thenReturn(url);
 
         URL returnedURL = s3Service.save(multipartFile, filename);
 

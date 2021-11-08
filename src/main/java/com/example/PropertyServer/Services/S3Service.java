@@ -3,6 +3,7 @@ package com.example.PropertyServer.Services;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +18,11 @@ public class S3Service {
     @Autowired
     AmazonS3 s3;
 
-    public static final String S3_BUCKET_NAME = "propertyserverbucket";
+    public final String S3_BUCKET_NAME;
+
+    public S3Service(@Value("${s3.bucket.name}") String bucketname) {
+        this.S3_BUCKET_NAME = bucketname;
+    }
 
 
     public URL save(MultipartFile multipartFile, String filename) throws IOException {

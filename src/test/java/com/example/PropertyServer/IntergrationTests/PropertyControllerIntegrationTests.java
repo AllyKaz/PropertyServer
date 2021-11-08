@@ -10,7 +10,6 @@ import com.example.PropertyServer.Repositories.AgentRepository;
 import com.example.PropertyServer.Repositories.PropertyBaseRepository;
 import com.example.PropertyServer.Repositories.RentalPropertyRepository;
 import com.example.PropertyServer.Repositories.SalePropertyRepository;
-import com.example.PropertyServer.Services.S3Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,18 +74,24 @@ public class PropertyControllerIntegrationTests {
     private ServletContext context;
 
 
-    final String AMAZON_S3_BUCKET_URL_REGEX =
-            "https://" + S3Service.S3_BUCKET_NAME + "\\.s3\\.eu-west-2\\.amazonaws\\.com/";
+
 
     ObjectMapper mapper = new ObjectMapper();
 
     private final String USERNAME;
     private final String PASSWORD;
 
+    private final String S3_BUCKET_NAME;
+
+    final String AMAZON_S3_BUCKET_URL_REGEX;
+
     public PropertyControllerIntegrationTests(@Value("${spring.security.user.name}") String username,
-            @Value("${spring.security.user.password}") String password) {
+            @Value("${spring.security.user.password}") String password, @Value("${s3.bucket.name}") String bucketname) {
         this.USERNAME = username;
         this.PASSWORD = password;
+        this.S3_BUCKET_NAME = bucketname;
+        this.AMAZON_S3_BUCKET_URL_REGEX = "https://" + S3_BUCKET_NAME + "\\.s3\\.eu-west-2\\.amazonaws\\.com/";
+
     }
 
     @Test

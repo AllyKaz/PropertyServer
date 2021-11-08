@@ -3,15 +3,16 @@ package com.example.PropertyServer.Controllers;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.example.PropertyServer.Agent.Agent;
-import com.example.PropertyServer.Exceptions.AgentNotFoundException;
 import com.example.PropertyServer.ApiErrors.ApiError;
+import com.example.PropertyServer.Exceptions.AgentNotFoundException;
+import com.example.PropertyServer.Exceptions.PropertyNotFoundException;
 import com.example.PropertyServer.Property.Property;
 import com.example.PropertyServer.Property.RentalProperty;
 import com.example.PropertyServer.Property.SaleProperty;
-import com.example.PropertyServer.Exceptions.PropertyNotFoundException;
 import com.example.PropertyServer.Services.AgentService;
 import com.example.PropertyServer.Services.PropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -48,7 +49,11 @@ public class PropertyController {
 
     private final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
-    private final String S3_BUCKET_NAME = "propertytestbucket";
+    private final String S3_BUCKET_NAME;
+
+    public PropertyController(@Value("${s3.bucket.name}") String bucketname) {
+        this.S3_BUCKET_NAME = bucketname;
+    }
 
     @GetMapping("/properties")
     public List<Property> getAllProperties(@RequestParam Map<String, String> searchParameters) {
