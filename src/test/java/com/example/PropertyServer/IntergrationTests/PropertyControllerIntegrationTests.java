@@ -53,7 +53,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc
-//@ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PropertyControllerIntegrationTests {
 
@@ -440,7 +439,7 @@ public class PropertyControllerIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(is(notNullValue())));
     }
-    
+
     @Test
     public void addRentalPropertyWithBasicAuth() throws Exception {
         Agent agent = agentRepository.save(initAgent().build());
