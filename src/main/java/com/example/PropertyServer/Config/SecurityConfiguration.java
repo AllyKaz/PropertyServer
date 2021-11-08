@@ -1,5 +1,6 @@
 package com.example.PropertyServer.Config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,11 +29,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     }
 
+    @Value("${spring.security.user.name}")
+    String username;
+
+    @Value("${spring.security.user.password}")
+    String password;
+
+
     @Bean
     public UserDetailsService userDetailsService() {
         PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-        UserDetails user = User.withUsername("admin")
-                .password(encoder.encode("password"))
+        UserDetails user = User.withUsername(username)
+                .password(encoder.encode(password))
                 .roles("ADMIN")
                 .build();
         return new InMemoryUserDetailsManager(user);
